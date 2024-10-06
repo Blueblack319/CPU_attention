@@ -316,7 +316,6 @@ void attn_output_test(float* values, const float* logits, float* result,
                                      j * values_batch_offset + (k + 1) * Dh),
                        _MM_HINT_T0);
         }
-        __m256 one = _mm256_set1_ps(1.0f);
         __m256 v00 = _mm256_load_ps(values + i * values_head_offset +
                                     j * values_batch_offset + k * Dh);
         __m256 v01 = _mm256_load_ps(values + i * values_head_offset +
@@ -410,17 +409,12 @@ void attn_output_threaded(float* values, const float* logits, float* result,
                           int const logits_haed_offset,
                           int const logits_batch_offset,
                           int const result_head_offset,
-                          int const result_batch_offset, int thread_id,
-                          int num_threads) {
+                          int const result_batch_offset, int const thread_id,
+                          int const num_threads, int const start_idx,
+                          int const end_idx) {
   while (!ready_flag.load(std::memory_order_acquire)) {
     // Busy-wait (spinlock) until the main thread signals ready
   }
-
-  // Each thread works on its slice
-  int total_work = num_head * batch_size;
-  int work_per_thread = (total_work + num_threads - 1) / num_threads;
-  int start_idx = thread_id * work_per_thread;
-  int end_idx = std::min(start_idx + work_per_thread, total_work);
 
   // Multiply and Add
   for (int idx = start_idx; idx < end_idx; ++idx) {
@@ -538,8 +532,8 @@ void attn_output_threaded(float* values, const float* logits, float* result,
     _mm256_store_ps(
         result + i * result_head_offset + j * result_batch_offset + 120, c15);
   }
-  // Signal the main thread that this thread has completed
-  complete_counter.fetch_add(1, std::memory_order_release);
+  // Mark this thread as finished
+  finished_flags[thread_id].store(true, std::memory_order_release);
 }
 
 void attn_output_mul_add_threaded(

@@ -2,10 +2,13 @@
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
+#include <unistd.h>
 
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <ctime>
 #include <iostream>
 #include <thread>
@@ -23,7 +26,7 @@ std::atomic<bool> ready_flag(false);
 std::atomic<int> complete_counter(0);
 
 // For thread-pool
-const int num_threads = 2;  // Total work = 256 / num_threads
+const int num_threads = 8;  // Total work = 256 / num_threads
 std::atomic<bool> finished_flags[num_threads];
 
 // #define ITERATIONS 30
@@ -48,7 +51,7 @@ std::atomic<bool> finished_flags[num_threads];
 //   int m = 256;
 //   //   int n = 500;
 //   int k = 260000;
-//   //   int lda = ROUNDUP(k, 16);
+//   //   int lda = ROUNDUP(k, `6);
 //   //   int ldb = ROUNDUP(k, 16);
 //   //   int ldc = ROUNDUP(m, 16);
 //   float *A = ALLOC(lda * m);
@@ -132,6 +135,17 @@ std::atomic<bool> finished_flags[num_threads];
 //               B.data(), 1, 0.0f, C.data(), 1);
 // }
 
+void flush_cache() {
+  size_t cache_flusher_size = 512 * 1024 * 1024;  // 512 MB
+  char *cache_flusher = (char *)malloc(cache_flusher_size);
+
+  for (size_t i = 0; i < cache_flusher_size; i += 4096) {
+    cache_flusher[i] = 0;
+  }
+
+  free(cache_flusher);
+}
+
 float calculate_mse(const float *C, const float *golden_output,
                     const size_t m) {
   float mse = 0.0;
@@ -195,61 +209,100 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
     result_trusted[i] = 0.f;
   }
 
-  std::chrono::microseconds duration_micro;
-  std::chrono::microseconds duration_micro_trusted;
-  std::chrono::high_resolution_clock::time_point start;
-  std::chrono::high_resolution_clock::time_point end;
+  struct timespec start, end;
+  double total_time_sec, total_time_sec_trusted;
+  // Create array of timespecs to store when each thread finishes
+  struct timespec thread_finish_times[num_threads];
+  bool thread_finished[num_threads];
+  memset(thread_finished, 0, num_threads * sizeof(bool));
 
-  start = std::chrono::high_resolution_clock::now();
+  // Flush the current data in Cache
+  flush_cache();
+  clock_gettime(CLOCK_REALTIME, &start);
   attn_output_trusted(
       values_trusted, logits, result_trusted, num_head, batch_size, K, Dh,
       logits_head_offset, logits_batch_offset, values_head_offset,
       values_batch_offset, result_head_offset, result_batch_offset);
-  end = std::chrono::high_resolution_clock::now();
-  duration_micro_trusted =
-      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  clock_gettime(CLOCK_REALTIME, &end);
+  total_time_sec_trusted =
+      (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+
+  // Each thread works on its slice
+  int total_work = num_head * batch_size;
+  int work_per_thread = (total_work + num_threads - 1) / num_threads;
 
   std::vector<std::thread> threads;
-  for (int t = 0; t < num_threads; ++t)
-    threads.emplace_back(attn_output_threaded, values, logits, result, num_head,
-                         batch_size, K, Dh, values_head_offset,
-                         values_batch_offset, logits_head_offset,
-                         logits_batch_offset, result_head_offset,
-                         result_batch_offset, t, num_threads);
+  for (int t = 0; t < num_threads; ++t) {
+    const int start_idx = t * work_per_thread;
+    const int end_idx = std::min(start_idx + work_per_thread, total_work);
+    threads.emplace_back(
+        attn_output_threaded, values, logits, result, num_head, batch_size, K,
+        Dh, values_head_offset, values_batch_offset, logits_head_offset,
+        logits_batch_offset, result_head_offset, result_batch_offset, t,
+        num_threads, start_idx, end_idx);
+  }
+
+  usleep(1000000);  // Sleep for 1s to allow threads to start
+
+  // Flush the current data in Cache
+  flush_cache();
 
   // Measure execution time
-  start = std::chrono::high_resolution_clock::now();
+  clock_gettime(CLOCK_REALTIME, &start);
+
+  // Start the threads by setting the ready flag
   ready_flag.store(true, std::memory_order_release);
-  // Wait until all threads complete their work by monitoring the atomic counter
-  while (complete_counter.load(std::memory_order_acquire) < num_threads) {
-    // Busy wait until all threads signal they are done
+
+  // Busy wait until all threads are finished
+  bool all_threads_finished = false;
+  struct timespec current_time;
+  while (!all_threads_finished) {
+    all_threads_finished = true;
+    for (int i = 0; i < num_threads; ++i) {
+      if (!thread_finished[i]) {
+        if (finished_flags[i].load(std::memory_order_acquire)) {
+          clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
+          thread_finished[i] = true;
+        } else {
+          all_threads_finished = false;
+        }
+      }
+    }
   }
   // attn_output_test(values, logits, result, num_head, batch_size, K, Dh,
   //                  values_head_offset, values_batch_offset,
   //                  logits_head_offset, logits_batch_offset,
   //                  result_head_offset, result_batch_offset);
-  end = std::chrono::high_resolution_clock::now();
-  duration_micro =
-      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  clock_gettime(CLOCK_REALTIME, &end);
+  total_time_sec =
+      (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
   for (auto &thread : threads) thread.join();
+
+  for (int i = 0; i < num_threads; ++i) {
+    double thread_time_sec =
+        (thread_finish_times[i].tv_sec - start.tv_sec) +
+        (thread_finish_times[i].tv_nsec - start.tv_nsec) / 1e9;
+    std::cout << "Thread #" << i << ": " << thread_time_sec * 1e6 << " us"
+              << std::endl;
+  }
 
   // Calculate FLOPs and GFLOPs
   double flops = 2.0 * Dh * K * num_head * batch_size;
-  double gflops = flops / (duration_micro.count() * 1e3);
-  double gflops_trusted = flops / (duration_micro_trusted.count() * 1e3);
+  double gflops = flops / total_time_sec / 1e9;
+  double gflops_trusted = flops / total_time_sec_trusted / 1e9;
 
   std::cout
       << "==========================My attn_output=========================="
       << std::endl;
-  std::cout << "Elapsed time: " << 0.000001f * duration_micro.count()
-            << " seconds" << std::endl;
+  std::cout << "Elapsed time: " << total_time_sec * 1e6 << " microseconds"
+            << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;
 
   std::cout << "==========================Trusted "
                "attn_output=========================="
             << std::endl;
-  std::cout << "Elapsed time: " << 0.000001f * duration_micro_trusted.count()
-            << " seconds" << std::endl;
+  std::cout << "Elapsed time: " << total_time_sec_trusted * 1e6
+            << " microseconds" << std::endl;
   std::cout << "GFLOPs: " << gflops_trusted << std::endl;
 
   // Calculate MSE and MAE
