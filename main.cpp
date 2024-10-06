@@ -3,15 +3,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <ctime>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include "attention_output.h"
 #include "attention_score.h"
 #include "float.h"
+#include "shared.h"
+
+// Define synchronization variables
+std::atomic<bool> ready_flag(false);
+
+// Atomic counter to count completed threads
+std::atomic<int> complete_counter(0);
+
+// For thread-pool
+const int num_threads = 2;  // Total work = 256 / num_threads
+std::atomic<bool> finished_flags[num_threads];
 
 // #define ITERATIONS 30
 // #define ALLOC(n) (float *)memalign(4096, sizeof(float) * (n))
@@ -186,15 +199,6 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   std::chrono::microseconds duration_micro_trusted;
   std::chrono::high_resolution_clock::time_point start;
   std::chrono::high_resolution_clock::time_point end;
-  // Measure execution time
-  start = std::chrono::high_resolution_clock::now();
-  attn_output_test(values, logits, result, num_head, batch_size, K, Dh,
-                   values_head_offset, values_batch_offset, logits_head_offset,
-                   logits_batch_offset, result_head_offset,
-                   result_batch_offset);
-  end = std::chrono::high_resolution_clock::now();
-  duration_micro =
-      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
   start = std::chrono::high_resolution_clock::now();
   attn_output_trusted(
@@ -205,8 +209,31 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   duration_micro_trusted =
       std::chrono::duration_cast<std::chrono::microseconds>(end - start);
 
+  std::vector<std::thread> threads;
+  for (int t = 0; t < num_threads; ++t)
+    threads.emplace_back(attn_output_threaded, values, logits, result, num_head,
+                         batch_size, K, Dh, values_head_offset,
+                         values_batch_offset, logits_head_offset,
+                         logits_batch_offset, result_head_offset,
+                         result_batch_offset, t, num_threads);
+
+  // Measure execution time
+  start = std::chrono::high_resolution_clock::now();
+  ready_flag.store(true, std::memory_order_release);
+  // Wait until all threads complete their work by monitoring the atomic counter
+  while (complete_counter.load(std::memory_order_acquire) < num_threads) {
+    // Busy wait until all threads signal they are done
+  }
+  // attn_output_test(values, logits, result, num_head, batch_size, K, Dh,
+  //                  values_head_offset, values_batch_offset,
+  //                  logits_head_offset, logits_batch_offset,
+  //                  result_head_offset, result_batch_offset);
+  end = std::chrono::high_resolution_clock::now();
+  duration_micro =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  for (auto &thread : threads) thread.join();
+
   // Calculate FLOPs and GFLOPs
-  // size_t K = 48, Dh = 128, num_head = 4, batch_size = 64;
   double flops = 2.0 * Dh * K * num_head * batch_size;
   double gflops = flops / (duration_micro.count() * 1e3);
   double gflops_trusted = flops / (duration_micro_trusted.count() * 1e3);
