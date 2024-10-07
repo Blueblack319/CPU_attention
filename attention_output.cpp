@@ -193,88 +193,91 @@ void attn_output_3_threaded(
     int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
     int const logits_haed_offset, int const logits_batch_offset,
-    int const result_head_offset, int const result_batch_offset, int thread_id,
-    int num_threads) {
+    int const result_head_offset, int const result_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx) {
   while (!ready_flag.load(std::memory_order_acquire)) {
     // Busy-wait (spinlock) until the main thread signals ready
   }
   // Multiply and Add
   // Parallelize over num_head and batch_size
   // #pragma omp parallel for collapse(2)
-  for (int i = 0; i < num_head; ++i) {
-    for (int j = 0; j < batch_size; ++j) {
-      for (int l = 0; l < Dh; l += 64) {
-        __m256 c00 = _mm256_setzero_ps();
-        __m256 c01 = _mm256_setzero_ps();
-        __m256 c02 = _mm256_setzero_ps();
-        __m256 c03 = _mm256_setzero_ps();
-        __m256 c04 = _mm256_setzero_ps();
-        __m256 c05 = _mm256_setzero_ps();
-        __m256 c06 = _mm256_setzero_ps();
-        __m256 c07 = _mm256_setzero_ps();
-        for (int k = 0; k < K; ++k) {
-          float logit =
-              logits[i * logits_haed_offset + j * logits_batch_offset + k];
-          __m256 logit_vec = _mm256_set1_ps(logit);
-          __m256 v0 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l);
-          __m256 v1 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l + 8);
-          __m256 v2 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l + 16);
-          __m256 v3 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l + 24);
-          __m256 v4 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l + 32);
-          __m256 v5 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l + 40);
-          __m256 v6 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l + 48);
-          __m256 v7 = _mm256_load_ps(values + i * values_head_offset +
-                                     j * values_batch_offset + k * Dh + l + 56);
-          c00 = _mm256_fmadd_ps(logit_vec, v0, c00);
-          c01 = _mm256_fmadd_ps(logit_vec, v1, c01);
-          c02 = _mm256_fmadd_ps(logit_vec, v2, c02);
-          c03 = _mm256_fmadd_ps(logit_vec, v3, c03);
-          c04 = _mm256_fmadd_ps(logit_vec, v4, c04);
-          c05 = _mm256_fmadd_ps(logit_vec, v5, c05);
-          c06 = _mm256_fmadd_ps(logit_vec, v6, c06);
-          c07 = _mm256_fmadd_ps(logit_vec, v7, c07);
-          // Prefetch next values
-          if (k + 1 < K) {
-            _mm_prefetch(
-                (const char*)(values + i * values_head_offset +
-                              j * values_batch_offset + (k + 1) * Dh + l),
-                _MM_HINT_T0);
-          }
+  for (int idx = start_idx; idx < end_idx; ++idx) {
+    int i = idx / batch_size;
+    int j = idx % batch_size;
+    for (int l = 0; l < Dh; l += 64) {
+      __m256 c00 = _mm256_setzero_ps();
+      __m256 c01 = _mm256_setzero_ps();
+      __m256 c02 = _mm256_setzero_ps();
+      __m256 c03 = _mm256_setzero_ps();
+      __m256 c04 = _mm256_setzero_ps();
+      __m256 c05 = _mm256_setzero_ps();
+      __m256 c06 = _mm256_setzero_ps();
+      __m256 c07 = _mm256_setzero_ps();
+      for (int k = 0; k < K; ++k) {
+        float logit =
+            logits[i * logits_haed_offset + j * logits_batch_offset + k];
+        __m256 logit_vec = _mm256_set1_ps(logit);
+        __m256 v0 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l);
+        __m256 v1 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l + 8);
+        __m256 v2 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l + 16);
+        __m256 v3 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l + 24);
+        __m256 v4 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l + 32);
+        __m256 v5 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l + 40);
+        __m256 v6 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l + 48);
+        __m256 v7 = _mm256_load_ps(values + i * values_head_offset +
+                                   j * values_batch_offset + k * Dh + l + 56);
+        c00 = _mm256_fmadd_ps(logit_vec, v0, c00);
+        c01 = _mm256_fmadd_ps(logit_vec, v1, c01);
+        c02 = _mm256_fmadd_ps(logit_vec, v2, c02);
+        c03 = _mm256_fmadd_ps(logit_vec, v3, c03);
+        c04 = _mm256_fmadd_ps(logit_vec, v4, c04);
+        c05 = _mm256_fmadd_ps(logit_vec, v5, c05);
+        c06 = _mm256_fmadd_ps(logit_vec, v6, c06);
+        c07 = _mm256_fmadd_ps(logit_vec, v7, c07);
+        // Prefetch next values
+        if (k + 1 < K) {
+          _mm_prefetch(
+              (const char*)(values + i * values_head_offset +
+                            j * values_batch_offset + (k + 1) * Dh + l),
+              _MM_HINT_T0);
         }
-        // Store the accumulated result back into the result array
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l, c00);
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l + 8,
-            c01);
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l + 16,
-            c02);
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l + 24,
-            c03);
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l + 32,
-            c04);
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l + 40,
-            c05);
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l + 48,
-            c06);
-        _mm256_store_ps(
-            result + i * result_head_offset + j * result_batch_offset + l + 56,
-            c07);
       }
+      // Store the accumulated result back into the result array
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l, c00);
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l + 8,
+          c01);
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l + 16,
+          c02);
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l + 24,
+          c03);
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l + 32,
+          c04);
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l + 40,
+          c05);
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l + 48,
+          c06);
+      _mm256_store_ps(
+          result + i * result_head_offset + j * result_batch_offset + l + 56,
+          c07);
     }
   }
+  // Mark this thread as finished
+  finished_flags[thread_id].store(true, std::memory_order_release);
 }
 
 void attn_output_test(float* values, const float* logits, float* result,

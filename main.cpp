@@ -26,7 +26,7 @@ std::atomic<bool> ready_flag(false);
 std::atomic<int> complete_counter(0);
 
 // For thread-pool
-const int num_threads = 8;  // Total work = 256 / num_threads
+const int num_threads = 32;  // Total work = 256 / num_threads
 std::atomic<bool> finished_flags[num_threads];
 
 // #define ITERATIONS 30
@@ -229,7 +229,8 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
 
   // Each thread works on its slice
   int total_work = num_head * batch_size;
-  int work_per_thread = (total_work + num_threads - 1) / num_threads;
+  // int work_per_thread = (total_work + num_threads - 1) / num_threads;
+  int work_per_thread = total_work / num_threads;
 
   std::vector<std::thread> threads;
   for (int t = 0; t < num_threads; ++t) {
@@ -290,6 +291,9 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   double flops = 2.0 * Dh * K * num_head * batch_size;
   double gflops = flops / total_time_sec / 1e9;
   double gflops_trusted = flops / total_time_sec_trusted / 1e9;
+  double total_bytes =
+      (Dh * K * num_head * batch_size + K * num_head * batch_size) * 4;
+  double effective_bw = total_bytes / total_time_sec / 1e9;
 
   std::cout
       << "==========================My attn_output=========================="
@@ -297,6 +301,8 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   std::cout << "Elapsed time: " << total_time_sec * 1e6 << " microseconds"
             << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;
+  std::cout << "Total Bytes: " << total_bytes << std::endl;
+  std::cout << "Effective Bandwidth: " << effective_bw << std::endl;
 
   std::cout << "==========================Trusted "
                "attn_output=========================="
