@@ -1,4 +1,5 @@
 #include <immintrin.h>
+#include <numa.h>
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,132 +9,18 @@
 #include <atomic>
 #include <chrono>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 #include <ctime>
 #include <iostream>
+#include <random>
 #include <thread>
 #include <vector>
 
 #include "attention_output.h"
 #include "attention_score.h"
 #include "float.h"
-#include "shared.h"
-
-// Define synchronization variables
-std::atomic<bool> ready_flag(false);
-
-// Atomic counter to count completed threads
-std::atomic<int> complete_counter(0);
-
-// For thread-pool
-const int num_threads = 32;  // Total work = 256 / num_threads
-std::atomic<bool> finished_flags[num_threads];
-
-// #define ITERATIONS 30
-// #define ALLOC(n) (float *)memalign(4096, sizeof(float) * (n))
-
-// int cpu_get_num_math();
-
-// void llamafile_sgemm_openmp(long m, long n, long k, const void *A, long lda,
-//                             const void *B, long ldb, void *C, long ldc,
-//                             int Atype, int Btype, int Ctype) {
-//   static int nth = cpu_get_num_math();
-// #pragma omp parallel for
-//   for (int ith = 0; ith < nth; ++ith) {
-//     bool res = llamafile_sgemm(m, n, k, A, lda, B, ldb, C, ldc, ith, nth,
-//     Atype,
-//                                Btype, Ctype);
-//     assert(res);
-//   }
-// }
-
-// int test(void) {
-//   int m = 256;
-//   //   int n = 500;
-//   int k = 260000;
-//   //   int lda = ROUNDUP(k, `6);
-//   //   int ldb = ROUNDUP(k, 16);
-//   //   int ldc = ROUNDUP(m, 16);
-//   float *A = ALLOC(lda * m);
-//   float *B = ALLOC(ldb * n);
-//   float *C = ALLOC(ldc * n);
-//   float *G = ALLOC(ldc * n);
-//   broadcast(A, lda * m, NAN);
-//   broadcast(B, ldb * n, NAN);
-//   broadcast(C, ldc * n, NAN);
-//   broadcast(G, ldc * n, NAN);
-//   randomize(k, m, A, lda);
-//   randomize(k, n, B, ldb);
-
-//   BENCH(ansiBLAS::sgemm(m, n, k, A, lda, B, ldb, G, ldc));
-//   BENCH(llamafile_sgemm_openmp(m, n, k, A, lda, B, ldb, C, ldc,
-//   GGML_TYPE_F32,
-//                                GGML_TYPE_F32, GGML_TYPE_F32));
-
-//   /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//   int flips = 0;
-//   double err_sum = 0;
-//   long long err_worst = 0;
-//   for (int i = 0; i < m; ++i)
-//     for (int j = 0; j < n; ++j) {
-//       float g = G[ldc * j + i];
-//       float c = C[ldc * j + i];
-//       if (signbit(g) != signbit(c)) ++flips;
-//       if (flt::isnan(g)) {
-//         fprintf(stderr,
-//                 "%s:%err: found nan in reference matrix: i=%err j=%err\n",
-//                 __FILE__, __LINE__, i, j);
-//         return 3;
-//       }
-//       if (flt::isnan(c)) {
-//         fprintf(stderr, "%s:%err: found nan in output matrix: i=%err
-//         j=%err\n",
-//                 __FILE__, __LINE__, i, j);
-//         return 4;
-//       }
-//       long long gi = flt::toint(g);
-//       long long ci = flt::toint(c);
-//       long long err = gi - ci;
-//       if (err < 0) err = -err;
-//       err_sum += err;
-//       if (err > err_worst) err_worst = err;
-//     }
-
-//   double err_avg = err_sum / (m * n);
-//   fprintf(stderr, "%12g ulp average\n", err_avg);
-//   fprintf(stderr, "%12lld ulp worst\n", err_worst);
-//   fprintf(stderr, "%12d flips\n", flips);
-
-//   free(G);
-//   free(C);
-//   free(B);
-//   free(A);
-//   /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//   return 0;
-// }
-
-// static inline float hsum_float_8(const __m256 x) {
-//   __m128 res = _mm256_extractf128_ps(x, 1);
-//   res = _mm_add_ps(res, _mm256_castps256_ps128(x));
-//   res = _mm_add_ps(res, _mm_movehl_ps(res, res));
-//   res = _mm_add_ss(res, _mm_movehdup_ps(res));
-//   return _mm_cvtss_f32(res);
-// }
-
-// void trusted_gemv(float *A, float *B, float *C, const int m, const int n) {
-//   // OpenBLAS expects a flat array for matrix A
-//   std::vector<float> A_flat(m * n);
-//   for (int i = 0; i < m; ++i) {
-//     for (int j = 0; j < n; ++j) {
-//       A_flat[i * n + j] = A[i][j];
-//     }
-//   }
-
-//   // Call SGEMV from OpenBLAS
-//   cblas_sgemv(CblasRowMajor, CblasNoTrans, m, n, 1.0f, A_flat.data(), n,
-//               B.data(), 1, 0.0f, C.data(), 1);
-// }
+// #include "shared.h"
 
 void flush_cache() {
   size_t cache_flusher_size = 512 * 1024 * 1024;  // 512 MB
@@ -164,13 +51,14 @@ float calculate_mae(const float *C, const float *golden_output,
   return mae;
 }
 
-void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
-                      const size_t batch_size, const int values_head_offset,
-                      const int values_batch_offset,
-                      int const logits_head_offset,
-                      int const logits_batch_offset,
-                      int const result_head_offset,
-                      int const result_batch_offset) {
+void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
+                     const size_t batch_size, const int values_head_offset,
+                     const int values_batch_offset,
+                     int const logits_head_offset,
+                     int const logits_batch_offset,
+                     int const result_head_offset,
+                     int const result_batch_offset) {
+  // Allocate memory
   float *values = static_cast<float *>(
       aligned_alloc(64, num_head * batch_size * K * Dh * sizeof(float)));
   float *values_trusted = static_cast<float *>(
@@ -184,25 +72,32 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   float *result_trusted = static_cast<float *>(
       aligned_alloc(64, num_head * batch_size * Dh * sizeof(float)));
 
-  float *values_transposed = static_cast<float *>(
-      aligned_alloc(64, num_head * batch_size * K * Dh * sizeof(float)));
+  // random generator
+  std::default_random_engine gen;
+  std::uniform_real_distribution<float> dist(-1.0, 1.0);
 
-  // Initialize values (example values for testing)
+  // Initialize variables with random values
   for (size_t i = 0; i < num_head; ++i)
     for (size_t j = 0; j < batch_size; ++j) {
       for (size_t k = 0; k < K; ++k)
         for (size_t l = 0; l < Dh; ++l) {
+          float rand_val = dist(gen);
+          // values[i * values_head_offset + j * values_batch_offset + k * Dh +
+          //        l] = static_cast<float>(l + 1);
+          // values_trusted[i * values_head_offset + j * values_batch_offset +
+          //                k * Dh + l] = static_cast<float>(l + 1);
           values[i * values_head_offset + j * values_batch_offset + k * Dh +
-                 l] = static_cast<float>(l + 1);
+                 l] = rand_val;
           values_trusted[i * values_head_offset + j * values_batch_offset +
-                         k * Dh + l] = static_cast<float>(l + 1);
+                         k * Dh + l] = rand_val;
         }
     }
 
   for (size_t i = 0; i < num_head; ++i)
     for (size_t j = 0; j < batch_size; ++j)
       for (size_t k = 0; k < K; ++k)
-        logits[i * logits_head_offset + j * logits_batch_offset + k] = 0.3f;
+        logits[i * logits_head_offset + j * logits_batch_offset + k] =
+            dist(gen);
 
   for (size_t i = 0; i < num_head * batch_size * Dh; ++i) {
     result[i] = 0.f;
@@ -211,12 +106,9 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
 
   struct timespec start, end;
   double total_time_sec, total_time_sec_trusted;
-  // Create array of timespecs to store when each thread finishes
-  struct timespec thread_finish_times[num_threads];
-  bool thread_finished[num_threads];
-  memset(thread_finished, 0, num_threads * sizeof(bool));
 
-  // Flush the current data in Cache
+  //////////////////////////////////////////////////////////////////////////////////
+  // Run attention output with OpenBLAS
   flush_cache();
   clock_gettime(CLOCK_REALTIME, &start);
   attn_output_trusted(
@@ -227,65 +119,135 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   total_time_sec_trusted =
       (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
 
+  //////////////////////////////////////////////////////////////////////////////////
+  // Run attention output with AVX2 and thread pool
+
+  // Define the number of threads
+  const int num_threads = 32;  // Total work = 256 / num_threads
+  // Define synchronization variables
+  std::atomic<bool> ready_flag(false);
+  std::atomic<bool> stop_flag(false);
+  // Define the finished flag for each thread
+  std::atomic<bool> finished_flags[num_threads];
+  for (int i = 0; i < num_threads; ++i)
+    finished_flags[i].store(false, std::memory_order_release);
+
+  // Create array of timespecs to store when each thread finishes
+  struct timespec thread_finish_times[num_threads];
+  bool thread_finished[num_threads];
+  for (int i = 0; i < num_threads; ++i) thread_finished[i] = false;
+
   // Each thread works on its slice
   int total_work = num_head * batch_size;
   // int work_per_thread = (total_work + num_threads - 1) / num_threads;
   int work_per_thread = total_work / num_threads;
+  int min_priority = sched_get_priority_min(SCHED_FIFO);
+  int max_priority = sched_get_priority_max(SCHED_FIFO);
+  std::cout << "SCHED_FIFO priority range: " << min_priority << " to "
+            << max_priority << std::endl;
+  int priority = max_priority;  // Base priority for all threads
 
+  // Init thread pool
   std::vector<std::thread> threads;
   for (int t = 0; t < num_threads; ++t) {
     const int start_idx = t * work_per_thread;
     const int end_idx = std::min(start_idx + work_per_thread, total_work);
-    threads.emplace_back(
-        attn_output_threaded, values, logits, result, num_head, batch_size, K,
-        Dh, values_head_offset, values_batch_offset, logits_head_offset,
-        logits_batch_offset, result_head_offset, result_batch_offset, t,
-        num_threads, start_idx, end_idx);
+    threads.emplace_back(attn_output_threaded, values, logits, result, num_head,
+                         batch_size, K, Dh, values_head_offset,
+                         values_batch_offset, logits_head_offset,
+                         logits_batch_offset, result_head_offset,
+                         result_batch_offset, t, num_threads, start_idx,
+                         end_idx, &ready_flag, &finished_flags[t], &stop_flag);
+
+    // // Get the native handle for the created thread
+    pthread_t nativeHandle = threads.back().native_handle();
+
+    // Define the scheduling parameters
+    struct sched_param param;
+    param.sched_priority = priority;  // Set the same priorities for each thread
+
+    // Set the scheduling policy to SCHED_FIFO
+    int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
+    if (ret != 0) {
+      std::cerr << "Failed to set scheduling policy for thread " << t << ": "
+                << strerror(ret) << std::endl;
+    }
+    // Set CPU affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    if (t > 23) {
+      int id = 48 + (t - 23);
+      CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
+    } else {
+      CPU_SET(t, &cpuset);  // Bind to specific CPU core
+    }
+    // CPU_SET(cpu_ids[t], &cpuset);  // Bind to specific CPU core
+    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    if (ret != 0) {
+      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+                << strerror(ret) << std::endl;
+    }
   }
 
-  usleep(1000000);  // Sleep for 1s to allow threads to start
+  usleep(100000);  // Sleep for 1s to allow threads to start
 
-  // Flush the current data in Cache
-  flush_cache();
+  // Repeat to measure latency of the kernel
+  double acc_time_sec;
+  int iteration = 100;
+  for (int i = 0; i < iteration; ++i) {
+    // Flush the current data in Cache
+    flush_cache();
 
-  // Measure execution time
-  clock_gettime(CLOCK_REALTIME, &start);
+    // Measure execution time
+    clock_gettime(CLOCK_REALTIME, &start);
 
-  // Start the threads by setting the ready flag
-  ready_flag.store(true, std::memory_order_release);
+    // Start the threads by setting the ready flag
+    ready_flag.store(true, std::memory_order_release);
 
-  // Busy wait until all threads are finished
-  bool all_threads_finished = false;
-  struct timespec current_time;
-  while (!all_threads_finished) {
-    all_threads_finished = true;
-    for (int i = 0; i < num_threads; ++i) {
-      if (!thread_finished[i]) {
-        if (finished_flags[i].load(std::memory_order_acquire)) {
-          clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
-          thread_finished[i] = true;
-        } else {
-          all_threads_finished = false;
+    // Busy wait until all threads are finished
+    bool all_threads_finished = false;
+    struct timespec current_time;
+    while (!all_threads_finished) {
+      all_threads_finished = true;
+      for (int i = 0; i < num_threads; ++i) {
+        if (!thread_finished[i]) {
+          if (finished_flags[i].load(std::memory_order_acquire)) {
+            clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
+            thread_finished[i] = true;
+          } else {
+            all_threads_finished = false;
+          }
         }
       }
     }
+    // attn_output_test(values, logits, result, num_head, batch_size, K, Dh,
+    //                  values_head_offset, values_batch_offset,
+    //                  logits_head_offset, logits_batch_offset,
+    //                  result_head_offset, result_batch_offset);
+    clock_gettime(CLOCK_REALTIME, &end);
+
+    ready_flag.store(false, std::memory_order_release);
+    for (int i = 0; i < num_threads; ++i)
+      finished_flags[i].store(false, std::memory_order_release);
+
+    usleep(1000);  // Sleep for 1s to allow threads to start
+    acc_time_sec +=
+        (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
   }
-  // attn_output_test(values, logits, result, num_head, batch_size, K, Dh,
-  //                  values_head_offset, values_batch_offset,
-  //                  logits_head_offset, logits_batch_offset,
-  //                  result_head_offset, result_batch_offset);
-  clock_gettime(CLOCK_REALTIME, &end);
-  total_time_sec =
-      (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+  total_time_sec = acc_time_sec / iteration;
+
+  // Stop the thread pool
+  stop_flag.store(true, std::memory_order_release);
   for (auto &thread : threads) thread.join();
 
-  for (int i = 0; i < num_threads; ++i) {
-    double thread_time_sec =
-        (thread_finish_times[i].tv_sec - start.tv_sec) +
-        (thread_finish_times[i].tv_nsec - start.tv_nsec) / 1e9;
-    std::cout << "Thread #" << i << ": " << thread_time_sec * 1e6 << " us"
-              << std::endl;
-  }
+  // [x] Debugging
+  // for (int i = 0; i < num_threads; ++i) {
+  //   double thread_time_sec =
+  //       (thread_finish_times[i].tv_sec - start.tv_sec) +
+  //       (thread_finish_times[i].tv_nsec - start.tv_nsec) / 1e9;
+  //   std::cout << "Thread #" << i << ": " << thread_time_sec * 1e6 << " us"
+  //             << std::endl;
+  // }
 
   // Calculate FLOPs and GFLOPs
   double flops = 2.0 * Dh * K * num_head * batch_size;
@@ -293,8 +255,9 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   double gflops_trusted = flops / total_time_sec_trusted / 1e9;
   double total_bytes =
       (Dh * K * num_head * batch_size + K * num_head * batch_size) * 4;
-  double effective_bw = total_bytes / total_time_sec / 1e9;
+  double throughput = total_bytes / total_time_sec / 1e9;
 
+  // With functionality
   std::cout
       << "==========================My attn_output=========================="
       << std::endl;
@@ -302,7 +265,7 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
             << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;
   std::cout << "Total Bytes: " << total_bytes << std::endl;
-  std::cout << "Effective Bandwidth: " << effective_bw << std::endl;
+  std::cout << "Throughtput(GB/s): " << throughput << std::endl;
 
   std::cout << "==========================Trusted "
                "attn_output=========================="
@@ -318,16 +281,9 @@ void attn_output_eval(const size_t K, const size_t Dh, const size_t num_head,
   std::cout << "Mean Squared Error: " << mse << std::endl;
   std::cout << "Maximum Absolute Error: " << mae << std::endl;
 
-  // std::cout << "Attention Output: ";
-  // for (int i = 0; i < Dh; i++) std::cout << result[i] << " ";
-  // std::cout << std::endl;
-
-  // std::cout << "Attention Output trusted: ";
-  // for (int i = 0; i < Dh; i++) std::cout << result_trusted[i] << " ";
-  // std::cout << std::endl;
-
   // Free the allocated memory
   free(values);
+  free(values_trusted);
   free(logits);
   free(result);
   free(result_trusted);
@@ -413,20 +369,183 @@ void attn_score_eval(const size_t K, const size_t Dh, const size_t num_head,
   std::cout << "Mean Squared Error: " << mse << std::endl;
   std::cout << "Maximum Absolute Error: " << mae << std::endl;
 
-  // std::cout << "Attention Output: ";
-  // for (int i = 0; i < K; i++) std::cout << C[i] << " ";
-  // std::cout << std::endl;
-
-  // std::cout << "Attention Output trusted: ";
-  // for (int i = 0; i < K; i++) std::cout << golden_output[i] << " ";
-  // std::cout << std::endl;
-
   free(C);
   free(B);
   free(A);
 }
 
+void attn_output_eval_threaded(
+    const size_t K, const size_t Dh, const size_t num_head,
+    const size_t batch_size, const int values_head_offset,
+    const int values_batch_offset, int const logits_head_offset,
+    int const logits_batch_offset, int const result_head_offset,
+    int const result_batch_offset, int const num_threads) {
+  float *values = static_cast<float *>(
+      aligned_alloc(64, num_head * batch_size * K * Dh * sizeof(float)));
+
+  float *logits = static_cast<float *>(
+      aligned_alloc(64, num_head * batch_size * K * sizeof(float)));
+
+  float *result = static_cast<float *>(
+      aligned_alloc(64, num_head * batch_size * Dh * sizeof(float)));
+
+  // Initialize values (example values for testing)
+  for (size_t i = 0; i < num_head; ++i)
+    for (size_t j = 0; j < batch_size; ++j) {
+      for (size_t k = 0; k < K; ++k)
+        for (size_t l = 0; l < Dh; ++l) {
+          values[i * values_head_offset + j * values_batch_offset + k * Dh +
+                 l] = static_cast<float>(l + 1);
+        }
+    }
+
+  for (size_t i = 0; i < num_head; ++i)
+    for (size_t j = 0; j < batch_size; ++j)
+      for (size_t k = 0; k < K; ++k)
+        logits[i * logits_head_offset + j * logits_batch_offset + k] = 0.3f;
+
+  for (size_t i = 0; i < num_head * batch_size * Dh; ++i) {
+    result[i] = 0.f;
+  }
+
+  struct timespec start, end;
+  double total_time_sec;
+  //////////////////////////////////////////////////////////////////////////////////
+  // Run attention output with AVX2
+  // int cpu_ids[num_threads];
+  // int const cpu_family = 6;
+  // int const cpus_per_family = std::thread::hardware_concurrency() /
+  // cpu_family; int group_num = num_threads / cpu_family + 1; int group_idx =
+  // 0; for (int i = 0; i < num_threads; ++i) {
+  //   if (i > group_num * (group_idx + 1)) group_idx++;
+  //   cpu_ids[i] = cpus_per_family * (group_idx) + (i - group_num * group_idx);
+  // }
+  // for (int i = 0; i < num_threads; ++i) {
+  //   printf("cpu #%d: %d", i, cpu_ids[i]);
+  // }
+
+  // Define synchronization variables
+  std::atomic<bool> ready_flag(false);
+  std::atomic<bool> stop_flag(false);
+  // Define the finished flag for each thread
+  std::atomic<bool> finished_flags[num_threads];
+  for (int i = 0; i < num_threads; ++i)
+    finished_flags[i].store(false, std::memory_order_release);
+
+  // Create array of timespecs to store when each thread finishes
+  struct timespec thread_finish_times[num_threads];
+  bool thread_finished[num_threads];
+  for (int i = 0; i < num_threads; ++i) thread_finished[i] = false;
+
+  // Each thread works on its slice
+  int const total_work = num_head * batch_size;
+  // int work_per_thread = (total_work + num_threads - 1) / num_threads;
+  int const work_per_thread = total_work / num_threads;
+  int const min_priority = sched_get_priority_min(SCHED_FIFO);
+  int const max_priority = sched_get_priority_max(SCHED_FIFO);
+  int const priority = max_priority;  // Base priority for all threads
+
+  std::vector<std::thread> threads;
+  for (int t = 0; t < num_threads; ++t) {
+    const int start_idx = t * work_per_thread;
+    const int end_idx = std::min(start_idx + work_per_thread, total_work);
+    threads.emplace_back(attn_output_threaded, values, logits, result, num_head,
+                         batch_size, K, Dh, values_head_offset,
+                         values_batch_offset, logits_head_offset,
+                         logits_batch_offset, result_head_offset,
+                         result_batch_offset, t, num_threads, start_idx,
+                         end_idx, &ready_flag, &finished_flags[t], &stop_flag);
+
+    // // Get the native handle for the created thread
+    pthread_t nativeHandle = threads.back().native_handle();
+
+    // Define the scheduling parameters
+    struct sched_param param;
+    param.sched_priority = priority;  // Set the same priorities for each thread
+
+    // Set the scheduling policy to SCHED_FIFO
+    int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
+    if (ret != 0) {
+      std::cerr << "Failed to set scheduling policy for thread " << t << ": "
+                << strerror(ret) << std::endl;
+    }
+    // Set CPU affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(t % std::thread::hardware_concurrency(),
+            &cpuset);  // Bind to specific CPU core
+    // CPU_SET(cpu_ids[t], &cpuset);  // Bind to specific CPU core
+    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    if (ret != 0) {
+      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+                << strerror(ret) << std::endl;
+    }
+  }
+
+  usleep(800000);  // Sleep for 1s to allow threads to start
+
+  // Flush the current data in Cache
+  flush_cache();
+
+  // Measure execution time
+  clock_gettime(CLOCK_REALTIME, &start);
+
+  // Start the threads by setting the ready flag
+  ready_flag.store(true, std::memory_order_release);
+
+  // Busy wait until all threads are finished
+  bool all_threads_finished = false;
+  struct timespec current_time;
+  while (!all_threads_finished) {
+    all_threads_finished = true;
+    for (int i = 0; i < num_threads; ++i) {
+      if (!thread_finished[i]) {
+        if (finished_flags[i].load(std::memory_order_acquire)) {
+          clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
+          thread_finished[i] = true;
+        } else {
+          all_threads_finished = false;
+        }
+      }
+    }
+  }
+
+  clock_gettime(CLOCK_REALTIME, &end);
+  total_time_sec =
+      (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+  for (auto &thread : threads) thread.join();
+
+  // for (int i = 0; i < num_threads; ++i) {
+  //   double thread_time_sec =
+  //       (thread_finish_times[i].tv_sec - start.tv_sec) +
+  //       (thread_finish_times[i].tv_nsec - start.tv_nsec) / 1e9;
+  //   std::cout << "Thread #" << i << ": " << thread_time_sec * 1e6 << " us"
+  //             << std::endl;
+  // }
+
+  // Calculate FLOPs and GFLOPs
+  double flops = 2.0 * Dh * K * num_head * batch_size;
+  double gflops = flops / total_time_sec / 1e9;
+  double total_bytes =
+      (Dh * K * num_head * batch_size + K * num_head * batch_size) * 4;
+  double throughput = total_bytes / total_time_sec / 1e9;
+  // Print the results
+  printf("%-10d %-15.2f %-15.2f\n", num_threads, total_time_sec * 1e6,
+         throughput);
+
+  // Free the allocated memory
+  free(values);
+  free(logits);
+  free(result);
+}
+
 int main(int argc, char *argv[]) {
+  // Check if NUMA is available
+  if (numa_available() == -1) {
+    std::cerr << "NUMA is not available on this system." << std::endl;
+    return 1;
+  }
+
   size_t K = 48, Dh = 128, num_head = 4, batch_size = 64;
 
   int const kv_head_offset = batch_size * K * Dh;
@@ -443,9 +562,19 @@ int main(int argc, char *argv[]) {
   //                 logits_score_head_offset, logits_score_batch_offset);
   /////////////////////////////////////////////////////////////////////////////////////////////////////
   // Attention Output
-  attn_output_eval(K, Dh, num_head, batch_size, kv_head_offset, kv_batch_offset,
-                   logits_score_head_offset, logits_score_batch_offset,
-                   q_out_head_offset, q_out_batch_offset);
+  // Set the preferred NUMA node for memory allocation
+  numa_set_preferred(0);  // Set preferred memory allocation to NUMA node 0
+  value_gemv_eval(K, Dh, num_head, batch_size, kv_head_offset, kv_batch_offset,
+                  logits_score_head_offset, logits_score_batch_offset,
+                  q_out_head_offset, q_out_batch_offset);
+  // Print table header
+  // printf("%-10s %-15s %-15s\n", "Threads", "Latency (us)", "Throughput
+  // (GB/s)"); printf("--------------------------------------------------\n");
+  // for (int i = 1; i < 32; i *= 2)
+  //   attn_output_eval_threaded(K, Dh, num_head, batch_size, kv_head_offset,
+  //                             kv_batch_offset, logits_score_head_offset,
+  //                             logits_score_batch_offset, q_out_head_offset,
+  //                             q_out_batch_offset, i);
 
   return 0;
 }
