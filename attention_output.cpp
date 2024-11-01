@@ -418,9 +418,9 @@ void attn_output_threaded(
     int const end_idx, std::atomic<bool>* ready_flag,
     std::atomic<bool>* finished_flag, std::atomic<bool>* stop_flag) {
   while (!stop_flag->load(std::memory_order_acquire)) {
-    while (!ready_flag->load(std::memory_order_acquire) &&
-           !ready_flag->load(std::memory_order_acquire) &&
-           !stop_flag->load(std::memory_order_acquire)) {
+    while (!(!ready_flag->load(std::memory_order_acquire) &&
+             finished_flag->load(std::memory_order_acquire) &&
+             stop_flag->load(std::memory_order_acquire))) {
       // Busy-wait (spinlock) until the main thread signals ready
     }
 

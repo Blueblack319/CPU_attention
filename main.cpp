@@ -183,15 +183,24 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
 
   // Init thread pool
   std::vector<std::thread> threads;
+  float *cur_values = values[0];
+  float *cur_logits = logits[0];
+  float *cur_result = result[0];
   for (int t = 0; t < num_threads; ++t) {
     const int start_idx = t * work_per_thread;
     const int end_idx = std::min(start_idx + work_per_thread, total_work);
+    // threads.emplace_back(
+    //     attn_output_threaded, cur_values, cur_logits, cur_result, num_head,
+    //     batch_size, K, Dh, values_head_offset, values_batch_offset,
+    //     logits_head_offset, logits_batch_offset, result_head_offset,
+    //     result_batch_offset, t, num_threads, start_idx, end_idx, &ready_flag,
+    //     &finished_flags[t], &stop_flag, &iter_num, total_work);
     threads.emplace_back(
-        attn_output_threaded, values, logits, result, num_head, batch_size, K,
-        Dh, values_head_offset, values_batch_offset, logits_head_offset,
-        logits_batch_offset, result_head_offset, result_batch_offset, t,
-        num_threads, start_idx, end_idx, &ready_flag, &finished_flags[t],
-        &stop_flag, &iter_num, total_work);
+        attn_output_threaded, cur_values, cur_logits, cur_result, num_head,
+        batch_size, K, Dh, values_head_offset, values_batch_offset,
+        logits_head_offset, logits_batch_offset, result_head_offset,
+        result_batch_offset, t, num_threads, start_idx, end_idx, &ready_flag,
+        &finished_flags[t], &stop_flag);
 
     // // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
@@ -260,7 +269,11 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     // Measure execution time
     clock_gettime(CLOCK_REALTIME, &end);
 
-    // Reset flags
+    // Reset flags and data
+    cur_values = values[ii + 1];
+    cur_logits = logits[ii + 1];
+    cur_result = result[ii + 1];
+
     ready_flag.store(false, std::memory_order_release);
     all_threads_finished = false;
     for (int i = 0; i < num_threads; ++i) {
@@ -278,10 +291,10 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     printf("Current elapsed time: %f\n", cur_time_sec);
 
     // Calculate MSE and MAE
-    float mse = calculate_mse(result + ii * num_head * batch_size * Dh,
-                              result_trusted, num_head * batch_size * Dh);
-    float mae = calculate_mae(result + ii * num_head * batch_size * Dh,
-                              result_trusted, num_head * batch_size * Dh);
+    float mse =
+        calculate_mse(result[ii], result_trusted, num_head * batch_size * Dh);
+    float mae =
+        calculate_mae(result[ii], result_trusted, num_head * batch_size * Dh);
 
     std::cout << "Mean Squared Error: " << mse << std::endl;
     std::cout << "Maximum Absolute Error: " << mae << std::endl;
@@ -324,8 +337,10 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   std::cout << "GFLOPs: " << gflops_trusted << std::endl;
 
   // Calculate MSE and MAE
-  float mse = calculate_mse(result, result_trusted, num_head * batch_size * Dh);
-  float mae = calculate_mae(result, result_trusted, num_head * batch_size * Dh);
+  float mse =
+      calculate_mse(result[0], result_trusted, num_head * batch_size * Dh);
+  float mae =
+      calculate_mae(result[0], result_trusted, num_head * batch_size * Dh);
 
   std::cout << "Mean Squared Error: " << mse << std::endl;
   std::cout << "Maximum Absolute Error: " << mae << std::endl;
