@@ -409,20 +409,33 @@ void attn_output_test(float* values, const float* logits, float* result,
 }
 
 void attn_output_threaded(
-    float* values, const float* logits, float* result, int const num_head,
-    int const batch_size, int const K, int const Dh,
+    float** values_arr, float** logits_arr, float** result_arr,
+    int const num_head, int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
     int const logits_haed_offset, int const logits_batch_offset,
     int const result_head_offset, int const result_batch_offset,
     int const thread_id, int const num_threads, int const start_idx,
     int const end_idx, std::atomic<bool>* ready_flag,
-    std::atomic<bool>* finished_flag, std::atomic<bool>* stop_flag) {
+    std::atomic<bool>* finished_flag, std::atomic<bool>* stop_flag,
+    std::atomic<int>* iter_num) {
+  float* values;
+  float* logits;
+  float* result;
   while (!stop_flag->load(std::memory_order_acquire)) {
-    while (!(!ready_flag->load(std::memory_order_acquire) &&
-             finished_flag->load(std::memory_order_acquire) &&
-             stop_flag->load(std::memory_order_acquire))) {
+    while (!(ready_flag->load(std::memory_order_acquire) &&
+             !finished_flag->load(std::memory_order_acquire) &&
+             !stop_flag->load(std::memory_order_acquire))) {
+      // ready_flag: true
+      // finished_flag: false
+      // stop_flag: false
       // Busy-wait (spinlock) until the main thread signals ready
+      if (stop_flag->load(std::memory_order_acquire)) return;
+      values = values_arr[iter_num->load(std::memory_order_acquire)];
+      logits = logits_arr[iter_num->load(std::memory_order_acquire)];
+      result = result_arr[iter_num->load(std::memory_order_acquire)];
+      // printf("Value ptr: %p\n", static_cast<void*>(values));
     }
+    if (stop_flag->load(std::memory_order_acquire)) return;
 
     // Multiply and Add
     for (int idx = start_idx; idx < end_idx; ++idx) {

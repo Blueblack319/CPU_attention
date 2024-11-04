@@ -1,0 +1,3920 @@
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 1
+2110.64 
+GFLOPs: 5.03014
+Total Bytes: 2.13996e+07
+ 10.1389
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 2
+1078.35 
+GFLOPs: 9.84547
+Total Bytes: 2.13996e+07
+ 19.8448
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 4
+574.43 
+GFLOPs: 18.4824
+Total Bytes: 2.13996e+07
+ 37.2535
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 8
+306.312 
+GFLOPs: 34.6602
+Total Bytes: 2.13996e+07
+ 69.862
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 16
+196.867 
+GFLOPs: 53.9288
+Total Bytes: 2.13996e+07
+ 108.7
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 32
+195.644 
+GFLOPs: 54.2659
+Total Bytes: 2.13996e+07
+ 109.38
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 48
+182.37 
+GFLOPs: 58.2158
+Total Bytes: 2.13996e+07
+ 117.341
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 64
+257.052 
+GFLOPs: 41.3023
+Total Bytes: 2.13996e+07
+ 83.25
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 1
+4352.38 
+GFLOPs: 4.90875
+Total Bytes: 4.30633e+07
+ 9.89419
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 2
+2277.24 
+GFLOPs: 9.38184
+Total Bytes: 4.30633e+07
+ 18.9103
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 4
+1121.65 
+GFLOPs: 19.0476
+Total Bytes: 4.30633e+07
+ 38.3928
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 8
+598.437 
+GFLOPs: 35.7009
+Total Bytes: 4.30633e+07
+ 71.9596
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 16
+386.279 
+GFLOPs: 55.3091
+Total Bytes: 4.30633e+07
+ 111.482
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 32
+421.279 
+GFLOPs: 50.714
+Total Bytes: 4.30633e+07
+ 102.22
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 48
+376.343 
+GFLOPs: 56.7693
+Total Bytes: 4.30633e+07
+ 114.426
+
+
+BS: 16, K: 163, Dh: 128, num_head: 32, thread_num: 64
+499.437 
+GFLOPs: 42.7777
+Total Bytes: 4.30633e+07
+ 86.2237
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 1
+6442.57 
+GFLOPs: 4.98444
+Total Bytes: 6.4727e+07
+ 10.0468
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 2
+3347.77 
+GFLOPs: 9.59224
+Total Bytes: 6.4727e+07
+ 19.3344
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 4
+1672.45 
+GFLOPs: 19.201
+Total Bytes: 6.4727e+07
+ 38.7019
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 8
+892.564 
+GFLOPs: 35.9779
+Total Bytes: 6.4727e+07
+ 72.5181
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 16
+570.72 
+GFLOPs: 56.2669
+Total Bytes: 6.4727e+07
+ 113.413
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 32
+623.504 
+GFLOPs: 51.5035
+Total Bytes: 6.4727e+07
+ 103.812
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 48
+541.478 
+GFLOPs: 59.3055
+Total Bytes: 6.4727e+07
+ 119.538
+
+
+BS: 16, K: 245, Dh: 128, num_head: 32, thread_num: 64
+748.326 
+GFLOPs: 42.9126
+Total Bytes: 6.4727e+07
+ 86.4958
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 1
+8257.42 
+GFLOPs: 5.19055
+Total Bytes: 8.63908e+07
+ 10.4622
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 2
+4414.37 
+GFLOPs: 9.70933
+Total Bytes: 8.63908e+07
+ 19.5704
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 4
+2225.54 
+GFLOPs: 19.2585
+Total Bytes: 8.63908e+07
+ 38.8179
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 8
+1187.96 
+GFLOPs: 36.0792
+Total Bytes: 8.63908e+07
+ 72.7222
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 16
+760.506 
+GFLOPs: 56.3579
+Total Bytes: 8.63908e+07
+ 113.596
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 32
+823.265 
+GFLOPs: 52.0616
+Total Bytes: 8.63908e+07
+ 104.937
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 48
+717.96 
+GFLOPs: 59.6977
+Total Bytes: 8.63908e+07
+ 120.328
+
+
+BS: 16, K: 327, Dh: 128, num_head: 32, thread_num: 64
+995.49 
+GFLOPs: 43.0547
+Total Bytes: 8.63908e+07
+ 86.7822
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 1
+10607.7 
+GFLOPs: 5.05374
+Total Bytes: 1.08055e+08
+ 10.1864
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 2
+5354.38 
+GFLOPs: 10.0121
+Total Bytes: 1.08055e+08
+ 20.1806
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 4
+2904.86 
+GFLOPs: 18.4548
+Total Bytes: 1.08055e+08
+ 37.1979
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 8
+1485.43 
+GFLOPs: 36.0894
+Total Bytes: 1.08055e+08
+ 72.7427
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 16
+1084.25 
+GFLOPs: 49.4427
+Total Bytes: 1.08055e+08
+ 99.658
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 32
+1037.55 
+GFLOPs: 51.6685
+Total Bytes: 1.08055e+08
+ 104.144
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 48
+895.054 
+GFLOPs: 59.8941
+Total Bytes: 1.08055e+08
+ 120.724
+
+
+BS: 16, K: 409, Dh: 128, num_head: 32, thread_num: 64
+1239.45 
+GFLOPs: 43.2516
+Total Bytes: 1.08055e+08
+ 87.1791
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 1
+1140.43 
+GFLOPs: 4.59727
+Total Bytes: 1.05677e+07
+ 9.26637
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 2
+581.416 
+GFLOPs: 9.01744
+Total Bytes: 1.05677e+07
+ 18.1758
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 4
+281.337 
+GFLOPs: 18.6356
+Total Bytes: 1.05677e+07
+ 37.5623
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 8
+150.261 
+GFLOPs: 34.8919
+Total Bytes: 1.05677e+07
+ 70.3289
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 16
+98.3096 
+GFLOPs: 53.3303
+Total Bytes: 1.05677e+07
+ 107.494
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 32
+107.445 
+GFLOPs: 48.7958
+Total Bytes: 1.05677e+07
+ 98.354
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 48
+100.495 
+GFLOPs: 52.1704
+Total Bytes: 1.05677e+07
+ 105.156
+
+
+BS: 16, K: 40, Dh: 128, num_head: 32, thread_num: 64
+131.716 
+GFLOPs: 39.8044
+Total Bytes: 1.05677e+07
+ 80.2308
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 1
+3255.3 
+GFLOPs: 4.91223
+Total Bytes: 3.22314e+07
+ 9.90122
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 2
+1712.82 
+GFLOPs: 9.33594
+Total Bytes: 3.22314e+07
+ 18.8177
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 4
+835.636 
+GFLOPs: 19.1361
+Total Bytes: 3.22314e+07
+ 38.5711
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 8
+449.021 
+GFLOPs: 35.6126
+Total Bytes: 3.22314e+07
+ 71.7816
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 16
+290.145 
+GFLOPs: 55.1131
+Total Bytes: 3.22314e+07
+ 111.087
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 32
+308.996 
+GFLOPs: 51.7508
+Total Bytes: 3.22314e+07
+ 104.31
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 48
+277.904 
+GFLOPs: 57.5406
+Total Bytes: 3.22314e+07
+ 115.98
+
+
+BS: 16, K: 122, Dh: 128, num_head: 32, thread_num: 64
+391.425 
+GFLOPs: 40.8528
+Total Bytes: 3.22314e+07
+ 82.3439
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 1
+5396.16 
+GFLOPs: 4.95513
+Total Bytes: 5.38952e+07
+ 9.98769
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 2
+2807.48 
+GFLOPs: 9.52409
+Total Bytes: 5.38952e+07
+ 19.197
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 4
+1384.24 
+GFLOPs: 19.3166
+Total Bytes: 5.38952e+07
+ 38.9349
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 8
+740.943 
+GFLOPs: 36.0874
+Total Bytes: 5.38952e+07
+ 72.7386
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 16
+486.96 
+GFLOPs: 54.9094
+Total Bytes: 5.38952e+07
+ 110.677
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 32
+523.674 
+GFLOPs: 51.0598
+Total Bytes: 5.38952e+07
+ 102.918
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 48
+453.269 
+GFLOPs: 58.9907
+Total Bytes: 5.38952e+07
+ 118.903
+
+
+BS: 16, K: 204, Dh: 128, num_head: 32, thread_num: 64
+624.145 
+GFLOPs: 42.8405
+Total Bytes: 5.38952e+07
+ 86.3503
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 1
+693.551 
+GFLOPs: 3.77974
+Total Bytes: 5.28384e+06
+ 7.61853
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 2
+284.842 
+GFLOPs: 9.20314
+Total Bytes: 5.28384e+06
+ 18.5501
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 4
+143.106 
+GFLOPs: 18.3182
+Total Bytes: 5.28384e+06
+ 36.9226
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 8
+77.8966 
+GFLOPs: 33.6528
+Total Bytes: 5.28384e+06
+ 67.8314
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 16
+50.6959 
+GFLOPs: 51.7091
+Total Bytes: 5.28384e+06
+ 104.226
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 32
+58.8824 
+GFLOPs: 44.5199
+Total Bytes: 5.28384e+06
+ 89.7354
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 48
+58.8866 
+GFLOPs: 44.5167
+Total Bytes: 5.28384e+06
+ 89.7291
+
+
+BS: 16, K: 20, Dh: 128, num_head: 32, thread_num: 64
+78.4545 
+GFLOPs: 33.4135
+Total Bytes: 5.28384e+06
+ 67.3491
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 1
+1733.03 
+GFLOPs: 4.61353
+Total Bytes: 1.61157e+07
+ 9.29914
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 2
+899.17 
+GFLOPs: 8.89197
+Total Bytes: 1.61157e+07
+ 17.9229
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 4
+414.513 
+GFLOPs: 19.2887
+Total Bytes: 1.61157e+07
+ 38.8787
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 8
+227.365 
+GFLOPs: 35.1655
+Total Bytes: 1.61157e+07
+ 70.8804
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 16
+149.089 
+GFLOPs: 53.6285
+Total Bytes: 1.61157e+07
+ 108.095
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 32
+149.137 
+GFLOPs: 53.6111
+Total Bytes: 1.61157e+07
+ 108.06
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 48
+141.629 
+GFLOPs: 56.453
+Total Bytes: 1.61157e+07
+ 113.788
+
+
+BS: 16, K: 61, Dh: 128, num_head: 32, thread_num: 64
+190.607 
+GFLOPs: 41.9469
+Total Bytes: 1.61157e+07
+ 84.5493
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 1
+2858.57 
+GFLOPs: 4.67694
+Total Bytes: 2.69476e+07
+ 9.42695
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 2
+1348.03 
+GFLOPs: 9.91767
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 19.9903
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 4
+702.775 
+GFLOPs: 19.0237
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 38.3445
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 8
+377.488 
+GFLOPs: 35.4166
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 71.3865
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 16
+242.301 
+GFLOPs: 55.1767
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 111.215
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 32
+262.487 
+GFLOPs: 50.9334
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 102.663
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 48
+229.663 
+GFLOPs: 58.213
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 117.336
+
+
+BS: 16, K: 102, Dh: 128, num_head: 32, thread_num: 64
+325.533 
+GFLOPs: 41.0691
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 82.78
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 1
+219.652 
+GFLOPs: 5.96726
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 12.0277
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 2
+119.339 
+GFLOPs: 10.9832
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 22.1379
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 4
+61.6289 
+GFLOPs: 21.2679
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 42.8682
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 8
+33.6884 
+GFLOPs: 38.9072
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 78.4222
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 16
+29.2848 
+GFLOPs: 44.7577
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 90.2148
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 32
+35.4639 
+GFLOPs: 36.9593
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 74.4961
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 48
+56.7226 
+GFLOPs: 23.1075
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 46.5761
+
+
+BS: 16, K: 10, Dh: 128, num_head: 32, thread_num: 64
+107.155 
+GFLOPs: 12.232
+Total Bytes: 2.64192e+06
+Throughtput(GB/s): 24.6551
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 1
+860.01 
+GFLOPs: 4.57222
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 9.21589
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 2
+392.664 
+GFLOPs: 10.0141
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 20.1846
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 4
+211.526 
+GFLOPs: 18.5895
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 37.4694
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 8
+114.548 
+GFLOPs: 34.3275
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 69.1914
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 16
+74.2352 
+GFLOPs: 52.969
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 106.766
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 32
+75.9537 
+GFLOPs: 51.7705
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 104.35
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 48
+93.5624 
+GFLOPs: 42.0271
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 84.711
+
+
+BS: 16, K: 30, Dh: 128, num_head: 32, thread_num: 64
+140.302 
+GFLOPs: 28.0263
+Total Bytes: 7.92576e+06
+Throughtput(GB/s): 56.4905
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 1
+1443.09 
+GFLOPs: 4.6322
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 9.33677
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 2
+741.558 
+GFLOPs: 9.01437
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 18.1696
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 4
+354.233 
+GFLOPs: 18.8708
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 38.0365
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 8
+186.952 
+GFLOPs: 35.756
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 72.0708
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 16
+124.564 
+GFLOPs: 53.6646
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 108.168
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 32
+139.339 
+GFLOPs: 47.974
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 96.6976
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 48
+143.5 
+GFLOPs: 46.5832
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 93.8943
+
+
+BS: 16, K: 51, Dh: 128, num_head: 32, thread_num: 64
+160.083 
+GFLOPs: 41.7574
+Total Bytes: 1.34738e+07
+Throughtput(GB/s): 84.1673
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 1
+4359.11 
+GFLOPs: 4.8711
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 9.81832
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 2
+2282.22 
+GFLOPs: 9.30396
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 18.7533
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 4
+1106.78 
+GFLOPs: 19.1851
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 38.6699
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 8
+600.915 
+GFLOPs: 35.3355
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 71.2232
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 16
+386.73 
+GFLOPs: 54.9057
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 110.669
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 32
+418.058 
+GFLOPs: 50.7912
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 102.376
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 48
+388.162 
+GFLOPs: 54.7031
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 110.261
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 64
+523.212 
+GFLOPs: 40.5833
+Total Bytes: 4.27991e+07
+Throughtput(GB/s): 81.8008
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 1
+8529.09 
+GFLOPs: 5.00985
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 10.098
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 2
+4357.36 
+GFLOPs: 9.80629
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 19.7658
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 4
+2214.51 
+GFLOPs: 19.2953
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 38.892
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 8
+1191.23 
+GFLOPs: 35.8701
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 72.3007
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 16
+756.363 
+GFLOPs: 56.4933
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 113.869
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 32
+835.651 
+GFLOPs: 51.1332
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 103.065
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 48
+766.126 
+GFLOPs: 55.7734
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 112.418
+
+
+BS: 32, K: 163, Dh: 128, num_head: 32, thread_num: 64
+1002.62 
+GFLOPs: 42.618
+Total Bytes: 8.61266e+07
+Throughtput(GB/s): 85.9018
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 1
+12661.9 
+GFLOPs: 5.07234
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 10.2239
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 2
+6531.35 
+GFLOPs: 9.83339
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 19.8204
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 4
+3317.69 
+GFLOPs: 19.3585
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 39.0194
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 8
+1787.03 
+GFLOPs: 35.9396
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 72.4407
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 16
+1144.27 
+GFLOPs: 56.1275
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 113.132
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 32
+1234.81 
+GFLOPs: 52.0124
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 104.838
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 48
+1134.66 
+GFLOPs: 56.6029
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 114.09
+
+
+BS: 32, K: 245, Dh: 128, num_head: 32, thread_num: 64
+1492.76 
+GFLOPs: 43.0246
+Total Bytes: 1.29454e+08
+Throughtput(GB/s): 86.7215
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 1
+16235.9 
+GFLOPs: 5.27971
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 10.6419
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 2
+8596.89 
+GFLOPs: 9.97117
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 20.0981
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 4
+4402.8 
+GFLOPs: 19.4697
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 39.2436
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 8
+2374.84 
+GFLOPs: 36.0955
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 72.755
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 16
+1514.54 
+GFLOPs: 56.5987
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 114.082
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 32
+1656.44 
+GFLOPs: 51.7501
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 104.309
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 48
+1512.29 
+GFLOPs: 56.683
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 114.252
+
+
+BS: 32, K: 327, Dh: 128, num_head: 32, thread_num: 64
+1987.96 
+GFLOPs: 43.1202
+Total Bytes: 1.72782e+08
+Throughtput(GB/s): 86.9141
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 1
+21557.2 
+GFLOPs: 4.97359
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 10.0249
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 2
+10756 
+
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 20.0919
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 4
+5512.52 
+GFLOPs: 19.4497
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 39.2033
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 8
+2959.66 
+GFLOPs: 36.2261
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 73.0183
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 16
+2040.44 
+GFLOPs: 52.5459
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 105.913
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 32
+2056.61 
+GFLOPs: 52.1329
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 105.08
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 48
+1871.35 
+GFLOPs: 57.2939
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 115.483
+
+
+BS: 32, K: 409, Dh: 128, num_head: 32, thread_num: 64
+2472.46 
+GFLOPs: 43.3645
+Total Bytes: 2.16109e+08
+Throughtput(GB/s): 87.4067
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 1
+2260.51 
+GFLOPs: 4.63867
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 9.34981
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 2
+1202.35 
+GFLOPs: 8.72103
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 17.5783
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 4
+643.343 
+GFLOPs: 16.2989
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 32.8524
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 8
+303.508 
+GFLOPs: 34.5486
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 69.637
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 16
+199.997 
+GFLOPs: 52.4296
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 105.678
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 32
+211.977 
+GFLOPs: 49.4666
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 99.7061
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 48
+194.725 
+GFLOPs: 53.8492
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 108.54
+
+
+BS: 32, K: 40, Dh: 128, num_head: 32, thread_num: 64
+259.199 
+GFLOPs: 40.4545
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 81.5412
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 1
+6395.38 
+GFLOPs: 5.00073
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 10.0796
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 2
+3353.34 
+GFLOPs: 9.53723
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 19.2235
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 4
+1808.6 
+GFLOPs: 17.6831
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 35.6424
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 8
+891.315 
+GFLOPs: 35.8813
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 72.3233
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 16
+574.414 
+GFLOPs: 55.6769
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 112.224
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 32
+630.155 
+GFLOPs: 50.7519
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 102.297
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 48
+570.407 
+GFLOPs: 56.068
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 113.012
+
+
+BS: 32, K: 122, Dh: 128, num_head: 32, thread_num: 64
+748.819 
+GFLOPs: 42.7093
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 86.086
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 1
+10631 
+
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 10.1392
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 2
+5361.36 
+GFLOPs: 9.97458
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 20.105
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 4
+2768.61 
+GFLOPs: 19.3156
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 38.9331
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 8
+1633.95 
+GFLOPs: 32.7289
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 65.9693
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 16
+954.893 
+GFLOPs: 56.0035
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 112.882
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 32
+1034.14 
+GFLOPs: 51.7119
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 104.232
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 48
+941.602 
+GFLOPs: 56.7941
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 114.476
+
+
+BS: 32, K: 204, Dh: 128, num_head: 32, thread_num: 64
+1244.95 
+GFLOPs: 42.9555
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 86.5822
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 1
+1238.82 
+GFLOPs: 4.23214
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 8.53041
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 2
+592.388 
+GFLOPs: 8.85041
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 17.8391
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 4
+289.547 
+GFLOPs: 18.1072
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 36.4972
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 8
+133.287 
+GFLOPs: 39.3354
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 79.2854
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 16
+103.023 
+GFLOPs: 50.8904
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 102.576
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 32
+103.448 
+GFLOPs: 50.6812
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 102.154
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 48
+103.134 
+GFLOPs: 50.8355
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 102.465
+
+
+BS: 32, K: 20, Dh: 128, num_head: 32, thread_num: 64
+158.785 
+GFLOPs: 33.0187
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 66.5532
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 1
+3308.4 
+GFLOPs: 4.83338
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 9.74229
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 2
+1764.19 
+GFLOPs: 9.06409
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 18.2698
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 4
+845.345 
+GFLOPs: 18.9163
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 38.1281
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 8
+456.426 
+GFLOPs: 35.0348
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 70.617
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 16
+299.295 
+GFLOPs: 53.4282
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 107.691
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 32
+323.421 
+GFLOPs: 49.4427
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 99.6579
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 48
+298.78 
+GFLOPs: 53.5202
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 107.877
+
+
+BS: 32, K: 61, Dh: 128, num_head: 32, thread_num: 64
+383.071 
+GFLOPs: 41.7436
+Total Bytes: 3.22314e+07
+Throughtput(GB/s): 84.1395
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 1
+5430.06 
+GFLOPs: 4.9242
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 9.92534
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 2
+2814.51 
+GFLOPs: 9.5003
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 19.1491
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 4
+1400.23 
+GFLOPs: 19.096
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 38.4903
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 8
+753.293 
+GFLOPs: 35.4958
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 71.5461
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 16
+493.185 
+GFLOPs: 54.2163
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 109.28
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 32
+524.52 
+GFLOPs: 50.9774
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 102.751
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 48
+484.465 
+GFLOPs: 55.1922
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 111.247
+
+
+BS: 32, K: 102, Dh: 128, num_head: 32, thread_num: 64
+628.24 
+GFLOPs: 42.5613
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 85.7876
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 1
+642.877 
+GFLOPs: 4.07767
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 8.21905
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 2
+315.059 
+GFLOPs: 8.32047
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 16.771
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 4
+152.847 
+GFLOPs: 17.1508
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 34.5696
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 8
+81.2439 
+GFLOPs: 32.2663
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 65.0368
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 16
+55.1306 
+GFLOPs: 47.5497
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 95.8423
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 32
+57.7908 
+GFLOPs: 45.3609
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 91.4305
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 48
+62.5019 
+GFLOPs: 41.9418
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 84.5388
+
+
+BS: 32, K: 10, Dh: 128, num_head: 32, thread_num: 64
+69.7084 
+GFLOPs: 37.6058
+Total Bytes: 5.28384e+06
+Throughtput(GB/s): 75.7992
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 1
+1658.53 
+GFLOPs: 4.74175
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 9.55759
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 2
+774.29 
+GFLOPs: 10.1568
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 20.4723
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 4
+469.433 
+GFLOPs: 16.7528
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 33.7674
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 8
+229.021 
+GFLOPs: 34.3388
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 69.2142
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 16
+151.807 
+GFLOPs: 51.8049
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 104.419
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 32
+168.184 
+GFLOPs: 46.7603
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 94.2512
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 48
+156.387 
+GFLOPs: 50.2877
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 101.361
+
+
+BS: 32, K: 30, Dh: 128, num_head: 32, thread_num: 64
+194.057 
+GFLOPs: 40.5258
+Total Bytes: 1.58515e+07
+Throughtput(GB/s): 81.6849
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 1
+2512.98 
+GFLOPs: 5.32011
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 10.7233
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 2
+1495.46 
+GFLOPs: 8.93993
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 18.0195
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 4
+713.527 
+GFLOPs: 18.737
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 37.7667
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 8
+383.309 
+GFLOPs: 34.8788
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 70.3026
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 16
+250.579 
+GFLOPs: 53.3538
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 107.541
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 32
+268.078 
+GFLOPs: 49.8711
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 100.521
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 48
+247.961 
+GFLOPs: 53.9171
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 108.677
+
+
+BS: 32, K: 51, Dh: 128, num_head: 32, thread_num: 64
+326.357 
+GFLOPs: 40.9654
+Total Bytes: 2.69476e+07
+Throughtput(GB/s): 82.5708
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 1
+7777.53 
+GFLOPs: 5.46026
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 11.0058
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 2
+4434.64 
+GFLOPs: 9.57627
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 19.3022
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 4
+2395.58 
+GFLOPs: 17.7274
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 35.7318
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 8
+1343.98 
+GFLOPs: 31.5981
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 63.6899
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 16
+769.905 
+GFLOPs: 55.1592
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 111.18
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 32
+843.134 
+GFLOPs: 50.3684
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 101.524
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 48
+760.59 
+GFLOPs: 55.8348
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 112.542
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 64
+1034 
+
+Total Bytes: 8.55982e+07
+Throughtput(GB/s): 82.7833
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 1
+16021.5 
+GFLOPs: 5.33401
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 10.7514
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 2
+8679.93 
+GFLOPs: 9.84558
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 19.845
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 4
+4585.92 
+GFLOPs: 18.6351
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 37.5614
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 8
+2389.67 
+GFLOPs: 35.7618
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 72.0824
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 16
+1520.57 
+GFLOPs: 56.2021
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 113.282
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 32
+1797.38 
+GFLOPs: 47.5465
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 95.8359
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 48
+1504.58 
+GFLOPs: 56.7992
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 114.486
+
+
+BS: 64, K: 163, Dh: 128, num_head: 32, thread_num: 64
+1990.42 
+GFLOPs: 42.9351
+Total Bytes: 1.72253e+08
+Throughtput(GB/s): 86.541
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 1
+24690.1 
+GFLOPs: 5.20251
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 10.4863
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 2
+12838.3 
+GFLOPs: 10.0053
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 20.1669
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 4
+6771.93 
+GFLOPs: 18.9681
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 38.2325
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 8
+3554.53 
+GFLOPs: 36.1371
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 72.8388
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 16
+2256.59 
+GFLOPs: 56.9224
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 114.734
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 32
+2474.99 
+GFLOPs: 51.8995
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 104.61
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 48
+2249.39 
+GFLOPs: 57.1045
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 115.101
+
+
+BS: 64, K: 245, Dh: 128, num_head: 32, thread_num: 64
+2966.88 
+GFLOPs: 43.2948
+Total Bytes: 2.58908e+08
+Throughtput(GB/s): 87.2662
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 1
+34546.3 
+GFLOPs: 4.96267
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 10.0029
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 2
+18213.7 
+GFLOPs: 9.41282
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 18.9727
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 4
+9213.33 
+GFLOPs: 18.608
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 37.5068
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 8
+4741.55 
+GFLOPs: 36.1574
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 72.8797
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 16
+3023.08 
+GFLOPs: 56.711
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 114.308
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 32
+3282.39 
+GFLOPs: 52.231
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 105.278
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 48
+2984.54 
+GFLOPs: 57.4434
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 115.784
+
+
+BS: 64, K: 327, Dh: 128, num_head: 32, thread_num: 64
+3941.87 
+GFLOPs: 43.4926
+Total Bytes: 3.45563e+08
+Throughtput(GB/s): 87.6648
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 1
+43657.3 
+GFLOPs: 4.91176
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 9.90026
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 2
+21366.2 
+GFLOPs: 10.0361
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 20.2291
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 4
+11079 
+
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 39.0122
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 8
+6007.35 
+GFLOPs: 35.6952
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 71.9482
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 16
+3785.8 
+GFLOPs: 56.6416
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 114.168
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 32
+4094.59 
+GFLOPs: 52.37
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 105.558
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 48
+3703.51 
+GFLOPs: 57.9002
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 116.705
+
+
+BS: 64, K: 409, Dh: 128, num_head: 32, thread_num: 64
+4916.84 
+GFLOPs: 43.6121
+Total Bytes: 4.32218e+08
+Throughtput(GB/s): 87.9057
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 1
+4425.89 
+GFLOPs: 4.73837
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 9.55078
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 2
+2180.37 
+GFLOPs: 9.61835
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 19.387
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 4
+1140.41 
+GFLOPs: 18.3894
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 37.0662
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 8
+609.158 
+GFLOPs: 34.4271
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 69.3921
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 16
+395.144 
+GFLOPs: 53.0731
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 106.975
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 32
+427.23 
+GFLOPs: 49.0872
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 98.9414
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 48
+410.349 
+GFLOPs: 51.1066
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 103.012
+
+
+BS: 64, K: 40, Dh: 128, num_head: 32, thread_num: 64
+517.539 
+GFLOPs: 40.5216
+Total Bytes: 4.22707e+07
+Throughtput(GB/s): 81.6764
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 1
+10210.3 
+GFLOPs: 6.26457
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 12.627
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 2
+6292.35 
+GFLOPs: 10.1652
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 20.4893
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 4
+3371.35 
+GFLOPs: 18.9726
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 38.2416
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 8
+1813.5 
+GFLOPs: 35.2706
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 71.0923
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 16
+1161.97 
+GFLOPs: 55.047
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 110.954
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 32
+1250.87 
+GFLOPs: 51.1348
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 103.069
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 48
+1138.88 
+GFLOPs: 56.1632
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 113.204
+
+
+BS: 64, K: 122, Dh: 128, num_head: 32, thread_num: 64
+1501.32 
+GFLOPs: 42.6045
+Total Bytes: 1.28926e+08
+Throughtput(GB/s): 85.8747
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 1
+16431 
+
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 13.1204
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 2
+10347.3 
+GFLOPs: 10.3364
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 20.8344
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 4
+5599.16 
+GFLOPs: 19.1019
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 38.5023
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 8
+2972.02 
+GFLOPs: 35.9873
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 72.5368
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 16
+1891.01 
+GFLOPs: 56.5595
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 114.003
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 32
+2057.9 
+GFLOPs: 51.9729
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 104.758
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 48
+1875.7 
+GFLOPs: 57.0214
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 114.934
+
+
+BS: 64, K: 204, Dh: 128, num_head: 32, thread_num: 64
+2473.67 
+GFLOPs: 43.2372
+Total Bytes: 2.15581e+08
+Throughtput(GB/s): 87.15
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 1
+2194.15 
+GFLOPs: 4.77896
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 9.63259
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 2
+1120.03 
+GFLOPs: 9.36201
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 18.8703
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 4
+562.024 
+GFLOPs: 18.6571
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 37.6058
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 8
+312.32 
+GFLOPs: 33.5738
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 67.6721
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 16
+211.094 
+GFLOPs: 49.6734
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 100.123
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 32
+221.609 
+GFLOPs: 47.3166
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 95.3724
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 48
+206.261 
+GFLOPs: 50.8374
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 102.469
+
+
+BS: 64, K: 20, Dh: 128, num_head: 32, thread_num: 64
+280.753 
+GFLOPs: 37.3487
+Total Bytes: 2.11354e+07
+Throughtput(GB/s): 75.2809
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 1
+5936.76 
+GFLOPs: 5.38704
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 10.8583
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 2
+3244.55 
+GFLOPs: 9.857
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 19.868
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 4
+1695.05 
+GFLOPs: 18.8677
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 38.0301
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 8
+906.062 
+GFLOPs: 35.2973
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 71.1462
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 16
+595.924 
+GFLOPs: 53.6672
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 108.173
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 32
+644.883 
+GFLOPs: 49.5928
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 99.9605
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 48
+582.162 
+GFLOPs: 54.9359
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 110.73
+
+
+BS: 64, K: 61, Dh: 128, num_head: 32, thread_num: 64
+763.682 
+GFLOPs: 41.8781
+Total Bytes: 6.44628e+07
+Throughtput(GB/s): 84.4106
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 1
+10611.6 
+GFLOPs: 5.03951
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 10.1578
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 2
+5404.28 
+GFLOPs: 9.89537
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 19.9454
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 4
+2756.02 
+GFLOPs: 19.4038
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 39.1108
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 8
+1496.18 
+GFLOPs: 35.7426
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 72.0437
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 16
+960.356 
+GFLOPs: 55.6849
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 112.24
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 32
+1040 
+
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 103.645
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 48
+951.016 
+GFLOPs: 56.2318
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 113.342
+
+
+BS: 64, K: 102, Dh: 128, num_head: 32, thread_num: 64
+1252.65 
+GFLOPs: 42.6913
+Total Bytes: 1.0779e+08
+Throughtput(GB/s): 86.0497
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 1
+1201.11 
+GFLOPs: 4.36502
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 8.79824
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 2
+587.348 
+GFLOPs: 8.92636
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 17.9922
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 4
+307.994 
+GFLOPs: 17.0227
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 34.3113
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 8
+166.847 
+GFLOPs: 31.4233
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 63.3377
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 16
+118.536 
+GFLOPs: 44.2304
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 89.1518
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 32
+116.95 
+GFLOPs: 44.8302
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 90.3609
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 48
+138.599 
+GFLOPs: 37.8276
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 76.2462
+
+
+BS: 64, K: 10, Dh: 128, num_head: 32, thread_num: 64
+191.69 
+GFLOPs: 27.3509
+Total Bytes: 1.05677e+07
+Throughtput(GB/s): 55.1291
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 1
+3245.17 
+GFLOPs: 4.84678
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 9.76929
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 2
+1705.91 
+GFLOPs: 9.22011
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 18.5843
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 4
+862.524 
+GFLOPs: 18.2356
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 36.7561
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 8
+465.307 
+GFLOPs: 33.8027
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 68.1337
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 16
+310.638 
+GFLOPs: 50.6334
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 102.058
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 32
+321.159 
+GFLOPs: 48.9746
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 98.7144
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 48
+305.615 
+GFLOPs: 51.4656
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 103.735
+
+
+BS: 64, K: 30, Dh: 128, num_head: 32, thread_num: 64
+390.285 
+GFLOPs: 40.3004
+Total Bytes: 3.1703e+07
+Throughtput(GB/s): 81.2306
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 1
+5292.02 
+GFLOPs: 5.05265
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 10.1842
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 2
+2756.57 
+GFLOPs: 9.69999
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 19.5515
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 4
+1554.33 
+GFLOPs: 17.2027
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 34.6742
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 8
+763.189 
+GFLOPs: 35.0355
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 70.6184
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 16
+493.898 
+GFLOPs: 54.1381
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 109.122
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 32
+536.026 
+GFLOPs: 49.8832
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 100.546
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 48
+512.134 
+GFLOPs: 52.2103
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 105.236
+
+
+BS: 64, K: 51, Dh: 128, num_head: 32, thread_num: 64
+667.727 
+GFLOPs: 40.0443
+Total Bytes: 5.38952e+07
+Throughtput(GB/s): 80.7144
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 1
+17001 
+
+Total Bytes: 1.71196e+08
+ 10.0698
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 2
+8733.85 
+GFLOPs: 9.72477
+Total Bytes: 1.71196e+08
+ 19.6015
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 4
+4545.17 
+GFLOPs: 18.6868
+Total Bytes: 1.71196e+08
+ 37.6656
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 8
+2389.89 
+GFLOPs: 35.5392
+Total Bytes: 1.71196e+08
+ 71.6336
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 16
+1537.56 
+GFLOPs: 55.24
+Total Bytes: 1.71196e+08
+ 111.343
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 32
+1662.58 
+GFLOPs: 51.0859
+Total Bytes: 1.71196e+08
+ 102.97
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 48
+1531.61 
+GFLOPs: 55.4544
+Total Bytes: 1.71196e+08
+ 111.775
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 64
+2010.76 
+GFLOPs: 42.2401
+Total Bytes: 1.71196e+08
+ 85.1401
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 1
+34306 
+
+Total Bytes: 3.44506e+08
+ 10.0422
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 2
+17146.7 
+GFLOPs: 9.96798
+Total Bytes: 3.44506e+08
+ 20.0917
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 4
+9131.04 
+GFLOPs: 18.7183
+Total Bytes: 3.44506e+08
+ 37.7291
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 8
+4751.29 
+GFLOPs: 35.9729
+Total Bytes: 3.44506e+08
+ 72.5079
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 16
+3043.51 
+GFLOPs: 56.1582
+Total Bytes: 3.44506e+08
+ 113.194
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 32
+3295.34 
+GFLOPs: 51.8666
+Total Bytes: 3.44506e+08
+ 104.544
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 48
+3023.09 
+GFLOPs: 56.5374
+Total Bytes: 3.44506e+08
+ 113.958
+
+
+BS: 128, K: 163, Dh: 128, num_head: 32, thread_num: 64
+3960.61 
+GFLOPs: 43.1545
+Total Bytes: 3.44506e+08
+ 86.9832
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 1
+51060.6 
+GFLOPs: 5.0313
+Total Bytes: 5.17816e+08
+ 10.1412
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 2
+26442 
+
+Total Bytes: 5.17816e+08
+ 19.5831
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 4
+13271.2 
+GFLOPs: 19.3578
+Total Bytes: 5.17816e+08
+ 39.0181
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 8
+7257.93 
+GFLOPs: 35.3959
+Total Bytes: 5.17816e+08
+ 71.3449
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 16
+4512.02 
+GFLOPs: 56.937
+Total Bytes: 5.17816e+08
+ 114.764
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 32
+4915.78 
+GFLOPs: 52.2605
+Total Bytes: 5.17816e+08
+ 105.338
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 48
+4507.48 
+GFLOPs: 56.9945
+Total Bytes: 5.17816e+08
+ 114.879
+
+
+BS: 128, K: 245, Dh: 128, num_head: 32, thread_num: 64
+5923.7 
+GFLOPs: 43.3683
+Total Bytes: 5.17816e+08
+ 87.4143
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 1
+62328.9 
+GFLOPs: 5.50121
+Total Bytes: 6.91126e+08
+ 11.0884
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 2
+31748.5 
+GFLOPs: 10.8
+Total Bytes: 6.91126e+08
+ 21.7688
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 4
+18917.5 
+GFLOPs: 18.1253
+Total Bytes: 6.91126e+08
+ 36.5338
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 8
+9640.63 
+GFLOPs: 35.5666
+Total Bytes: 6.91126e+08
+ 71.6889
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 16
+6199.7 
+GFLOPs: 55.3066
+Total Bytes: 6.91126e+08
+ 111.477
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 32
+6532.87 
+GFLOPs: 52.486
+Total Bytes: 6.91126e+08
+ 105.792
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 48
+5993.65 
+GFLOPs: 57.208
+Total Bytes: 6.91126e+08
+ 115.31
+
+
+BS: 128, K: 327, Dh: 128, num_head: 32, thread_num: 64
+7861.09 
+GFLOPs: 43.6179
+Total Bytes: 6.91126e+08
+ 87.9174
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 1
+83006 
+
+Total Bytes: 8.64436e+08
+ 10.4141
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 2
+40321.1 
+GFLOPs: 10.6363
+Total Bytes: 8.64436e+08
+ 21.4388
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 4
+22349 
+
+Total Bytes: 8.64436e+08
+ 38.679
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 8
+11833.3 
+GFLOPs: 36.2425
+Total Bytes: 8.64436e+08
+ 73.0514
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 16
+7462.17 
+GFLOPs: 57.4722
+Total Bytes: 8.64436e+08
+ 115.842
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 32
+8142.08 
+GFLOPs: 52.673
+Total Bytes: 8.64436e+08
+ 106.169
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 48
+7489.37 
+GFLOPs: 57.2635
+Total Bytes: 8.64436e+08
+ 115.422
+
+
+BS: 128, K: 409, Dh: 128, num_head: 32, thread_num: 64
+9867.45 
+GFLOPs: 43.4629
+Total Bytes: 8.64436e+08
+ 87.6049
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 1
+8733.94 
+GFLOPs: 4.80231
+Total Bytes: 8.45414e+07
+ 9.67965
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 2
+4526.55 
+GFLOPs: 9.266
+Total Bytes: 8.45414e+07
+ 18.6768
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 4
+2298.63 
+GFLOPs: 18.247
+Total Bytes: 8.45414e+07
+ 36.7791
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 8
+1216.47 
+GFLOPs: 34.4793
+Total Bytes: 8.45414e+07
+ 69.4974
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 16
+779.219 
+GFLOPs: 53.827
+Total Bytes: 8.45414e+07
+ 108.495
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 32
+849.033 
+GFLOPs: 49.401
+Total Bytes: 8.45414e+07
+ 99.5738
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 48
+780.951 
+GFLOPs: 53.7077
+Total Bytes: 8.45414e+07
+ 108.254
+
+
+BS: 128, K: 40, Dh: 128, num_head: 32, thread_num: 64
+1019.59 
+GFLOPs: 41.137
+Total Bytes: 8.45414e+07
+ 82.9167
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 1
+24799.8 
+GFLOPs: 5.15835
+Total Bytes: 2.57851e+08
+ 10.3973
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 2
+13086.8 
+GFLOPs: 9.77522
+Total Bytes: 2.57851e+08
+ 19.7032
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 4
+6851.27 
+GFLOPs: 18.6719
+Total Bytes: 2.57851e+08
+ 37.6356
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 8
+3743.63 
+GFLOPs: 34.1717
+Total Bytes: 2.57851e+08
+ 68.8774
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 16
+2272.63 
+GFLOPs: 56.29
+Total Bytes: 2.57851e+08
+ 113.46
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 32
+2462.17 
+GFLOPs: 51.9567
+Total Bytes: 2.57851e+08
+ 104.725
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 48
+2274.05 
+GFLOPs: 56.2548
+Total Bytes: 2.57851e+08
+ 113.389
+
+
+BS: 128, K: 122, Dh: 128, num_head: 32, thread_num: 64
+2990.82 
+GFLOPs: 42.773
+Total Bytes: 2.57851e+08
+ 86.2143
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 1
+41407.2 
+GFLOPs: 5.166
+Total Bytes: 4.31161e+08
+ 10.4127
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 2
+21454.6 
+GFLOPs: 9.97032
+Total Bytes: 4.31161e+08
+ 20.0964
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 4
+11129.2 
+GFLOPs: 19.2206
+Total Bytes: 4.31161e+08
+ 38.7415
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 8
+6106.97 
+GFLOPs: 35.0271
+Total Bytes: 4.31161e+08
+ 70.6015
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 16
+3910.94 
+GFLOPs: 54.6952
+Total Bytes: 4.31161e+08
+ 110.245
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 32
+4101.66 
+GFLOPs: 52.1519
+Total Bytes: 4.31161e+08
+ 105.119
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 48
+3756.73 
+GFLOPs: 56.9404
+Total Bytes: 4.31161e+08
+ 114.77
+
+
+BS: 128, K: 204, Dh: 128, num_head: 32, thread_num: 64
+4946.91 
+GFLOPs: 43.241
+Total Bytes: 4.31161e+08
+ 87.1577
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 1
+4505.41 
+GFLOPs: 4.65474
+Total Bytes: 4.22707e+07
+ 9.38222
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 2
+2393.73 
+GFLOPs: 8.76101
+Total Bytes: 4.22707e+07
+ 17.6589
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 4
+1170.28 
+GFLOPs: 17.92
+Total Bytes: 4.22707e+07
+ 36.12
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 8
+626.58 
+GFLOPs: 33.4698
+Total Bytes: 4.22707e+07
+ 67.4626
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 16
+415.717 
+GFLOPs: 50.4466
+Total Bytes: 4.22707e+07
+ 101.681
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 32
+449.524 
+GFLOPs: 46.6527
+Total Bytes: 4.22707e+07
+ 94.0343
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 48
+427.613 
+GFLOPs: 49.0432
+Total Bytes: 4.22707e+07
+ 98.8527
+
+
+BS: 128, K: 20, Dh: 128, num_head: 32, thread_num: 64
+574.433 
+GFLOPs: 36.5082
+Total Bytes: 4.22707e+07
+ 73.5869
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 1
+12838.3 
+GFLOPs: 4.98222
+Total Bytes: 1.28926e+08
+ 10.0423
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 2
+6950.23 
+GFLOPs: 9.20302
+Total Bytes: 1.28926e+08
+ 18.5498
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 4
+3547.07 
+GFLOPs: 18.0327
+Total Bytes: 1.28926e+08
+ 36.3471
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 8
+1829.8 
+GFLOPs: 34.9563
+Total Bytes: 1.28926e+08
+ 70.4588
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 16
+1165.95 
+GFLOPs: 54.8592
+Total Bytes: 1.28926e+08
+ 110.575
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 32
+1266.44 
+GFLOPs: 50.5064
+Total Bytes: 1.28926e+08
+ 101.802
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 48
+1168.48 
+GFLOPs: 54.7403
+Total Bytes: 1.28926e+08
+ 110.336
+
+
+BS: 128, K: 61, Dh: 128, num_head: 32, thread_num: 64
+1522.25 
+GFLOPs: 42.0187
+Total Bytes: 1.28926e+08
+ 84.694
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 1
+21427.9 
+GFLOPs: 4.99137
+Total Bytes: 2.15581e+08
+ 10.0607
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 2
+10966.2 
+GFLOPs: 9.75311
+Total Bytes: 2.15581e+08
+ 19.6586
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 4
+5737.3 
+GFLOPs: 18.642
+Total Bytes: 2.15581e+08
+ 37.5753
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 8
+3164.65 
+GFLOPs: 33.7967
+Total Bytes: 2.15581e+08
+ 68.1215
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 16
+1924.94 
+GFLOPs: 55.5626
+Total Bytes: 2.15581e+08
+ 111.993
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 32
+2090.47 
+GFLOPs: 51.1631
+Total Bytes: 2.15581e+08
+ 103.126
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 48
+1906.95 
+GFLOPs: 56.0868
+Total Bytes: 2.15581e+08
+ 113.05
+
+
+BS: 128, K: 102, Dh: 128, num_head: 32, thread_num: 64
+2502.18 
+GFLOPs: 42.7446
+Total Bytes: 2.15581e+08
+ 86.157
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 1
+2195.58 
+GFLOPs: 4.77585
+Total Bytes: 2.11354e+07
+ 9.62633
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 2
+1283.62 
+GFLOPs: 8.16889
+Total Bytes: 2.11354e+07
+ 16.4654
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 4
+610.525 
+GFLOPs: 17.175
+Total Bytes: 2.11354e+07
+ 34.6183
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 8
+330.204 
+GFLOPs: 31.7554
+Total Bytes: 2.11354e+07
+ 64.007
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 16
+228.117 
+GFLOPs: 45.9666
+Total Bytes: 2.11354e+07
+ 92.6513
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 32
+243.284 
+GFLOPs: 43.1009
+Total Bytes: 2.11354e+07
+ 86.8752
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 48
+243.657 
+GFLOPs: 43.0349
+Total Bytes: 2.11354e+07
+ 86.7423
+
+
+BS: 128, K: 10, Dh: 128, num_head: 32, thread_num: 64
+297.052 
+GFLOPs: 35.2994
+Total Bytes: 2.11354e+07
+ 71.1504
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 1
+6622.12 
+GFLOPs: 4.75033
+Total Bytes: 6.34061e+07
+ 9.57489
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 2
+3287.79 
+GFLOPs: 9.5679
+Total Bytes: 6.34061e+07
+ 19.2853
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 4
+1821.13 
+GFLOPs: 17.2735
+Total Bytes: 6.34061e+07
+ 34.8169
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 8
+920.454 
+GFLOPs: 34.1758
+Total Bytes: 6.34061e+07
+ 68.8857
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 16
+608.621 
+GFLOPs: 51.6861
+Total Bytes: 6.34061e+07
+ 104.18
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 32
+655.206 
+GFLOPs: 48.0113
+Total Bytes: 6.34061e+07
+ 96.7728
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 48
+600.3 
+GFLOPs: 52.4026
+Total Bytes: 6.34061e+07
+ 105.624
+
+
+BS: 128, K: 30, Dh: 128, num_head: 32, thread_num: 64
+778.498 
+GFLOPs: 40.4076
+Total Bytes: 6.34061e+07
+ 81.4467
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 1
+11459.4 
+GFLOPs: 4.66668
+Total Bytes: 1.0779e+08
+ 9.40629
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 2
+5523.9 
+GFLOPs: 9.68109
+Total Bytes: 1.0779e+08
+ 19.5134
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 4
+2981.07 
+GFLOPs: 17.939
+Total Bytes: 1.0779e+08
+ 36.1583
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 8
+1534.55 
+GFLOPs: 34.8488
+Total Bytes: 1.0779e+08
+ 70.2421
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 16
+982.393 
+GFLOPs: 54.4358
+Total Bytes: 1.0779e+08
+ 109.722
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 32
+1068.51 
+GFLOPs: 50.0483
+Total Bytes: 1.0779e+08
+ 100.879
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 48
+991.317 
+GFLOPs: 53.9458
+Total Bytes: 1.0779e+08
+ 108.735
+
+
+BS: 128, K: 51, Dh: 128, num_head: 32, thread_num: 64
+1294.11 
+GFLOPs: 41.3236
+Total Bytes: 1.0779e+08
+ 83.2929
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 1
+31280.7 
+GFLOPs: 5.43049
+Total Bytes: 3.42393e+08
+ 10.9458
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 2
+17298.5 
+GFLOPs: 9.81988
+Total Bytes: 3.42393e+08
+ 19.7932
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 4
+9069.26 
+GFLOPs: 18.7302
+Total Bytes: 3.42393e+08
+ 37.7531
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 8
+4795.29 
+GFLOPs: 35.4242
+Total Bytes: 3.42393e+08
+ 71.4019
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 16
+3055.41 
+GFLOPs: 55.5962
+Total Bytes: 3.42393e+08
+ 112.061
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 32
+3308.34 
+GFLOPs: 51.3457
+Total Bytes: 3.42393e+08
+ 103.494
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 48
+3046.68 
+GFLOPs: 55.7555
+Total Bytes: 3.42393e+08
+ 112.382
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 64
+4015.3 
+GFLOPs: 42.3055
+Total Bytes: 3.42393e+08
+ 85.2721
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 1
+64406 
+
+Total Bytes: 6.89013e+08
+ 10.698
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 2
+34811.6 
+GFLOPs: 9.8196
+Total Bytes: 6.89013e+08
+ 19.7926
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 4
+18678.8 
+GFLOPs: 18.3007
+Total Bytes: 6.89013e+08
+ 36.8873
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 8
+9667.22 
+GFLOPs: 35.3603
+Total Bytes: 6.89013e+08
+ 71.2731
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 16
+6167.49 
+GFLOPs: 55.4255
+Total Bytes: 6.89013e+08
+ 111.717
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 32
+6567.09 
+GFLOPs: 52.0529
+Total Bytes: 6.89013e+08
+ 104.919
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 48
+6059.21 
+GFLOPs: 56.4159
+Total Bytes: 6.89013e+08
+ 113.713
+
+
+BS: 256, K: 163, Dh: 128, num_head: 32, thread_num: 64
+7956.71 
+GFLOPs: 42.9619
+Total Bytes: 6.89013e+08
+ 86.5951
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 1
+92038.6 
+GFLOPs: 5.58247
+Total Bytes: 1.03563e+09
+ 11.2522
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 2
+47005.3 
+GFLOPs: 10.9307
+Total Bytes: 1.03563e+09
+ 22.0322
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 4
+25863.9 
+GFLOPs: 19.8656
+Total Bytes: 1.03563e+09
+ 40.0416
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 8
+14308.8 
+GFLOPs: 35.908
+Total Bytes: 1.03563e+09
+ 72.3771
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 16
+9030.06 
+GFLOPs: 56.8991
+Total Bytes: 1.03563e+09
+ 114.687
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 32
+9988.16 
+GFLOPs: 51.4411
+Total Bytes: 1.03563e+09
+ 103.686
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 48
+9007.73 
+GFLOPs: 57.0401
+Total Bytes: 1.03563e+09
+ 114.972
+
+
+BS: 256, K: 245, Dh: 128, num_head: 32, thread_num: 64
+11826.9 
+GFLOPs: 43.4436
+Total Bytes: 1.03563e+09
+ 87.566
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 1
+132808 
+
+Total Bytes: 1.38225e+09
+ 10.4079
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 2
+68190.8 
+GFLOPs: 10.0566
+Total Bytes: 1.38225e+09
+ 20.2704
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 4
+33084.8 
+GFLOPs: 20.7276
+Total Bytes: 1.38225e+09
+ 41.7791
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 8
+19767.1 
+GFLOPs: 34.6925
+Total Bytes: 1.38225e+09
+ 69.927
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 16
+11950.5 
+GFLOPs: 57.3839
+Total Bytes: 1.38225e+09
+ 115.664
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 32
+13024.2 
+GFLOPs: 52.6536
+Total Bytes: 1.38225e+09
+ 106.13
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 48
+11964.7 
+GFLOPs: 57.3159
+Total Bytes: 1.38225e+09
+ 115.527
+
+
+BS: 256, K: 327, Dh: 128, num_head: 32, thread_num: 64
+15720.6 
+GFLOPs: 43.6224
+Total Bytes: 1.38225e+09
+ 87.9263
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 1
+151571 
+
+Total Bytes: 1.72887e+09
+ 11.4064
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 2
+79475.4 
+GFLOPs: 10.7925
+Total Bytes: 1.72887e+09
+ 21.7536
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 4
+41581.9 
+GFLOPs: 20.6276
+Total Bytes: 1.72887e+09
+ 41.5775
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 8
+23543.4 
+GFLOPs: 36.4321
+Total Bytes: 1.72887e+09
+ 73.4335
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 16
+15043 
+
+Total Bytes: 1.72887e+09
+ 114.929
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 32
+16315.4 
+GFLOPs: 52.5722
+Total Bytes: 1.72887e+09
+ 105.966
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 48
+14940.7 
+GFLOPs: 57.4092
+Total Bytes: 1.72887e+09
+ 115.715
+
+
+BS: 256, K: 409, Dh: 128, num_head: 32, thread_num: 64
+19612 
+
+Total Bytes: 1.72887e+09
+ 88.1537
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 1
+18129 
+
+Total Bytes: 1.69083e+08
+ 9.32663
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 2
+8898.22 
+GFLOPs: 9.42728
+Total Bytes: 1.69083e+08
+ 19.0019
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 4
+4650.23 
+GFLOPs: 18.0391
+Total Bytes: 1.69083e+08
+ 36.3601
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 8
+2433.32 
+GFLOPs: 34.474
+Total Bytes: 1.69083e+08
+ 69.4866
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 16
+1566.86 
+GFLOPs: 53.5375
+Total Bytes: 1.69083e+08
+ 107.912
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 32
+1691.58 
+GFLOPs: 49.5902
+Total Bytes: 1.69083e+08
+ 99.9553
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 48
+1552.78 
+GFLOPs: 54.023
+Total Bytes: 1.69083e+08
+ 108.89
+
+
+BS: 256, K: 40, Dh: 128, num_head: 32, thread_num: 64
+2042.56 
+GFLOPs: 41.0691
+Total Bytes: 1.69083e+08
+ 82.78
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 1
+51220.2 
+GFLOPs: 4.99515
+Total Bytes: 5.15703e+08
+ 10.0684
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 2
+27060.2 
+GFLOPs: 9.45494
+Total Bytes: 5.15703e+08
+ 19.0576
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 4
+13570.8 
+GFLOPs: 18.8532
+Total Bytes: 5.15703e+08
+ 38.0009
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 8
+7347.09 
+GFLOPs: 34.8236
+Total Bytes: 5.15703e+08
+ 70.1914
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 16
+4535.29 
+GFLOPs: 56.4138
+Total Bytes: 5.15703e+08
+ 113.709
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 32
+4928.88 
+GFLOPs: 51.9088
+Total Bytes: 5.15703e+08
+ 104.629
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 48
+4533.4 
+GFLOPs: 56.4372
+Total Bytes: 5.15703e+08
+ 113.756
+
+
+BS: 256, K: 122, Dh: 128, num_head: 32, thread_num: 64
+5949.23 
+GFLOPs: 43.006
+Total Bytes: 5.15703e+08
+ 86.6839
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 1
+76458.1 
+GFLOPs: 5.59547
+Total Bytes: 8.62323e+08
+ 11.2784
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 2
+44092.8 
+GFLOPs: 9.7027
+Total Bytes: 8.62323e+08
+ 19.557
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 4
+22330.4 
+GFLOPs: 19.1586
+Total Bytes: 8.62323e+08
+ 38.6165
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 8
+12055.7 
+GFLOPs: 35.4869
+Total Bytes: 8.62323e+08
+ 71.5283
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 16
+7500.64 
+GFLOPs: 57.0377
+Total Bytes: 8.62323e+08
+ 114.967
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 32
+8162.16 
+GFLOPs: 52.4149
+Total Bytes: 8.62323e+08
+ 105.649
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 48
+7532.88 
+GFLOPs: 56.7935
+Total Bytes: 8.62323e+08
+ 114.474
+
+
+BS: 256, K: 204, Dh: 128, num_head: 32, thread_num: 64
+9869.49 
+GFLOPs: 43.3476
+Total Bytes: 8.62323e+08
+ 87.3725
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 1
+8845.92 
+GFLOPs: 4.74151
+Total Bytes: 8.45414e+07
+ 9.55711
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 2
+4368.35 
+GFLOPs: 9.60158
+Total Bytes: 8.45414e+07
+ 19.3532
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 4
+2474.68 
+GFLOPs: 16.9489
+Total Bytes: 8.45414e+07
+ 34.1626
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 8
+1257.1 
+GFLOPs: 33.3648
+Total Bytes: 8.45414e+07
+ 67.251
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 16
+830.957 
+GFLOPs: 50.4756
+Total Bytes: 8.45414e+07
+ 101.74
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 32
+897.66 
+GFLOPs: 46.7249
+Total Bytes: 8.45414e+07
+ 94.1798
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 48
+827.823 
+GFLOPs: 50.6667
+Total Bytes: 8.45414e+07
+ 102.125
+
+
+BS: 256, K: 20, Dh: 128, num_head: 32, thread_num: 64
+1070.7 
+GFLOPs: 39.1735
+Total Bytes: 8.45414e+07
+ 78.9591
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 1
+25027 
+
+Total Bytes: 2.57851e+08
+ 10.3029
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 2
+13303.5 
+GFLOPs: 9.616
+Total Bytes: 2.57851e+08
+ 19.3822
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 4
+6969.83 
+GFLOPs: 18.3543
+Total Bytes: 2.57851e+08
+ 36.9954
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 8
+3808.32 
+GFLOPs: 33.5913
+Total Bytes: 2.57851e+08
+ 67.7074
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 16
+2327.2 
+GFLOPs: 54.9701
+Total Bytes: 2.57851e+08
+ 110.799
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 32
+2518.36 
+GFLOPs: 50.7975
+Total Bytes: 2.57851e+08
+ 102.389
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 48
+2320.02 
+GFLOPs: 55.1401
+Total Bytes: 2.57851e+08
+ 111.142
+
+
+BS: 256, K: 61, Dh: 128, num_head: 32, thread_num: 64
+3050.9 
+GFLOPs: 41.9307
+Total Bytes: 2.57851e+08
+ 84.5165
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 1
+39635 
+
+Total Bytes: 4.31161e+08
+ 10.8783
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 2
+22437 
+
+Total Bytes: 4.31161e+08
+ 19.2165
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 4
+11430.4 
+GFLOPs: 18.7142
+Total Bytes: 4.31161e+08
+ 37.7207
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 8
+6185.57 
+GFLOPs: 34.582
+Total Bytes: 4.31161e+08
+ 69.7044
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 16
+3810.37 
+GFLOPs: 56.1387
+Total Bytes: 4.31161e+08
+ 113.155
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 32
+4140.52 
+GFLOPs: 51.6624
+Total Bytes: 4.31161e+08
+ 104.132
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 48
+3808.27 
+GFLOPs: 56.1697
+Total Bytes: 4.31161e+08
+ 113.217
+
+
+BS: 256, K: 102, Dh: 128, num_head: 32, thread_num: 64
+4999.2 
+GFLOPs: 42.7887
+Total Bytes: 4.31161e+08
+ 86.2461
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 1
+4740.09 
+GFLOPs: 4.42428
+Total Bytes: 4.22707e+07
+ 8.9177
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 2
+2541.57 
+GFLOPs: 8.2514
+Total Bytes: 4.22707e+07
+ 16.6317
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 4
+1232.24 
+GFLOPs: 17.019
+Total Bytes: 4.22707e+07
+ 34.3039
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 8
+655.571 
+GFLOPs: 31.9897
+Total Bytes: 4.22707e+07
+ 64.4792
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 16
+454.796 
+GFLOPs: 46.1119
+Total Bytes: 4.22707e+07
+ 92.9444
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 32
+486.997 
+GFLOPs: 43.0629
+Total Bytes: 4.22707e+07
+ 86.7987
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 48
+455.303 
+GFLOPs: 46.0606
+Total Bytes: 4.22707e+07
+ 92.8409
+
+
+BS: 256, K: 10, Dh: 128, num_head: 32, thread_num: 64
+585.859 
+GFLOPs: 35.7962
+Total Bytes: 4.22707e+07
+ 72.1517
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 1
+12648.4 
+GFLOPs: 4.9741
+Total Bytes: 1.26812e+08
+ 10.0259
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 2
+6738.38 
+GFLOPs: 9.33674
+Total Bytes: 1.26812e+08
+ 18.8194
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 4
+3570.82 
+GFLOPs: 17.6191
+Total Bytes: 1.26812e+08
+ 35.5134
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 8
+1840.87 
+GFLOPs: 34.1766
+Total Bytes: 1.26812e+08
+ 68.8872
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 16
+1193.99 
+GFLOPs: 52.6927
+Total Bytes: 1.26812e+08
+ 106.209
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 32
+1287.93 
+GFLOPs: 48.8492
+Total Bytes: 1.26812e+08
+ 98.4617
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 48
+1188.84 
+GFLOPs: 52.9212
+Total Bytes: 1.26812e+08
+ 106.669
+
+
+BS: 256, K: 30, Dh: 128, num_head: 32, thread_num: 64
+1553.7 
+GFLOPs: 40.4933
+Total Bytes: 1.26812e+08
+ 81.6192
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 1
+16875.3 
+GFLOPs: 6.33795
+Total Bytes: 2.15581e+08
+ 12.7749
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 2
+11195.5 
+GFLOPs: 9.55337
+Total Bytes: 2.15581e+08
+ 19.256
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 4
+5869.41 
+GFLOPs: 18.2224
+Total Bytes: 2.15581e+08
+ 36.7295
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 8
+3217.73 
+GFLOPs: 33.2392
+Total Bytes: 2.15581e+08
+ 66.9978
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 16
+1958.75 
+GFLOPs: 54.6037
+Total Bytes: 2.15581e+08
+ 110.061
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 32
+2009.35 
+GFLOPs: 53.2284
+Total Bytes: 2.15581e+08
+ 107.289
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 48
+1958.66 
+GFLOPs: 54.6061
+Total Bytes: 2.15581e+08
+ 110.065
+
+
+BS: 256, K: 51, Dh: 128, num_head: 32, thread_num: 64
+2567.22 
+GFLOPs: 41.6617
+Total Bytes: 2.15581e+08
+ 83.9743
+
+
