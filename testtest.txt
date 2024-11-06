@@ -1,0 +1,40 @@
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 1
+Elapsed time: 1244.04 microseconds
+Throughtput(GB/s): 8.60084
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 1
+Elapsed time: 2189.59 microseconds
+Throughtput(GB/s): 9.77333
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 1
+Elapsed time: 4825.65 microseconds
+Throughtput(GB/s): 8.86909
+
+
+BS: 128, K: 81, Dh: 128, num_head: 32, thread_num: 1
+Elapsed time: 9934.86 microseconds
+Throughtput(GB/s): 8.61595
+
+
+BS: 256, K: 81, Dh: 128, num_head: 32, thread_num: 1
+Elapsed time: 19780.9 microseconds
+Throughtput(GB/s): 8.65464
+
+
+BS: 16, K: 81, Dh: 128, num_head: 32, thread_num: 2
+Elapsed time: 687.318 microseconds
+Throughtput(GB/s): 15.5674
+
+
+BS: 32, K: 81, Dh: 128, num_head: 32, thread_num: 2
+Elapsed time: 1345.78 microseconds
+Throughtput(GB/s): 15.9013
+
+
+BS: 64, K: 81, Dh: 128, num_head: 32, thread_num: 2
+Elapsed time: 2589.89 microseconds
+Throughtput(GB/s): 16.5255
+
+

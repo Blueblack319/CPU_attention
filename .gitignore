@@ -1,3 +1,11 @@
 .vscode
 main
 r0*
+venv
+.txt
+integration/pybind11
+test_pybind/pybind11
+test_pybind/build
+test_pybind/project/pybind11
+test_pybind/cmake_example
+
