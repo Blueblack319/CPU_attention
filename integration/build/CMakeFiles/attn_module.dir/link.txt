@@ -1,0 +1,1 @@
+/usr/bin/c++ -fPIC -flto -shared  -o attn_module.so CMakeFiles/attn_module.dir/cpp/attn_module.cpp.o 
