@@ -1,8 +1,10 @@
+#include <immintrin.h>
+#include <pybind11/chrono.h>
+#include <pybind11/complex.h>
+#include <pybind11/functional.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
-// #include <pybind11/stl.h>
-
-#include <immintrin.h>
+#include <pybind11/stl.h>
 
 #include <atomic>
 
@@ -10,17 +12,19 @@ namespace py = pybind11;
 
 // Declare the function
 void attn_output_threaded(float* values, float* logits, float* result,
-                          int const num_head, int const batch_size, int const K,
+                          int const head_num, int const batch_size, int const K,
                           int const Dh, int const values_head_offset,
                           int const values_batch_offset,
                           int const logits_haed_offset,
                           int const logits_batch_offset,
                           int const result_head_offset,
                           int const result_batch_offset, int const thread_id,
-                          int const num_threads, int const start_idx,
+                          int const thread_num, int const start_idx,
                           int const end_idx) {
-  printf("HERE!!!");
-  // Multiply and Add
+  //   while (!(ready_flag->load(std::memory_order_acquire))) {
+  //     //   while (!(*ready_flag)) {
+  //     // Multiply and Add
+  //   }
   for (int idx = start_idx; idx < end_idx; ++idx) {
     int i = idx / batch_size;
     int j = idx % batch_size;
@@ -135,41 +139,39 @@ void attn_output_threaded(float* values, float* logits, float* result,
     _mm256_store_ps(
         result + i * result_head_offset + j * result_batch_offset + 120, c15);
   }
-  printf("HERE");
 }
 
 // Wrapper function to convert numpy arrays to raw pointers
 void attn_output_threaded_pybind(
     py::array_t<float> values, py::array_t<float> logits,
-    py::array_t<float> result, int num_head, int batch_size, int K, int Dh,
+    py::array_t<float> result, int head_num, int batch_size, int K, int Dh,
     int values_head_offset, int values_batch_offset, int logits_head_offset,
     int logits_batch_offset, int result_head_offset, int result_batch_offset,
-    int thread_id, int num_threads, int start_idx, int end_idx) {
+    int thread_id, int thread_num, int start_idx, int end_idx) {
   // Get C-style pointers from py::array_t
   float* values_ptr = static_cast<float*>(values.mutable_data());
   float* logits_ptr = static_cast<float*>(logits.mutable_data());
   float* result_ptr = static_cast<float*>(result.mutable_data());
 
   // Call the original function
-  attn_output_threaded(values_ptr, logits_ptr, result_ptr, num_head, batch_size,
+  attn_output_threaded(values_ptr, logits_ptr, result_ptr, head_num, batch_size,
                        K, Dh, values_head_offset, values_batch_offset,
                        logits_head_offset, logits_batch_offset,
                        result_head_offset, result_batch_offset, thread_id,
-                       num_threads, start_idx, end_idx);
+                       thread_num, start_idx, end_idx);
 }
 
 // Make attn_output_threaded more simple
 void attn_output_simple(float* values, float* logits, float* result,
-                        int const num_head, int const batch_size, int const K,
+                        int const head_num, int const batch_size, int const K,
                         int const Dh, int const values_head_offset,
                         int const values_batch_offset,
                         int const logits_haed_offset,
                         int const logits_batch_offset,
                         int const result_head_offset,
                         int const result_batch_offset, int const thread_id,
-                        int const num_threads, int const start_idx,
+                        int const thread_num, int const start_idx,
                         int const end_idx) {
-  printf("HERE!!!\n");
   // Multiply and Add
   __m256 c00 = _mm256_setzero_ps();
   __m256 c01 = _mm256_setzero_ps();
@@ -249,40 +251,43 @@ void attn_output_simple(float* values, float* logits, float* result,
 
 void attn_output_simple_pybind(
     py::array_t<float> values, py::array_t<float> logits,
-    py::array_t<float> result, int num_head, int batch_size, int K, int Dh,
+    py::array_t<float> result, int head_num, int batch_size, int K, int Dh,
     int values_head_offset, int values_batch_offset, int logits_head_offset,
     int logits_batch_offset, int result_head_offset, int result_batch_offset,
-    int thread_id, int num_threads, int start_idx, int end_idx) {
+    int thread_id, int thread_num, int start_idx, int end_idx) {
   // Get C-style pointers from py::array_t
   float* values_ptr = static_cast<float*>(values.mutable_data());
   float* logits_ptr = static_cast<float*>(logits.mutable_data());
   float* result_ptr = static_cast<float*>(result.mutable_data());
 
   // Call the original function
-  attn_output_simple(values_ptr, logits_ptr, result_ptr, num_head, batch_size,
+  attn_output_simple(values_ptr, logits_ptr, result_ptr, head_num, batch_size,
                      K, Dh, values_head_offset, values_batch_offset,
                      logits_head_offset, logits_batch_offset,
                      result_head_offset, result_batch_offset, thread_id,
-                     num_threads, start_idx, end_idx);
+                     thread_num, start_idx, end_idx);
 }
 
 PYBIND11_MODULE(attn_module, m) {
   m.def("attn_output_threaded", &attn_output_threaded_pybind, py::arg("values"),
-        py::arg("logits"), py::arg("result"), py::arg("num_head"),
+        py::arg("logits"), py::arg("result"), py::arg("head_num"),
         py::arg("batch_size"), py::arg("K"), py::arg("Dh"),
         py::arg("values_head_offset"), py::arg("values_batch_offset"),
         py::arg("logits_head_offset"), py::arg("logits_batch_offset"),
         py::arg("result_head_offset"), py::arg("result_batch_offset"),
-        py::arg("thread_id"), py::arg("num_threads"), py::arg("start_idx"),
+        py::arg("thread_id"), py::arg("thread_num"), py::arg("start_idx"),
         py::arg("end_idx"),
         "Execute threaded attention output with AVX optimizations.");
+
+  //   m.def("attn_output_threaded", &attn_output_threaded_pybind,
+  //         "Execute threaded attention output with AVX optimizations.");
+
   m.def("attn_output_simple", &attn_output_simple_pybind, py::arg("values"),
-        py::arg("logits"), py::arg("result"), py::arg("num_head"),
+        py::arg("logits"), py::arg("result"), py::arg("head_num"),
         py::arg("batch_size"), py::arg("K"), py::arg("Dh"),
         py::arg("values_head_offset"), py::arg("values_batch_offset"),
         py::arg("logits_head_offset"), py::arg("logits_batch_offset"),
         py::arg("result_head_offset"), py::arg("result_batch_offset"),
-        py::arg("thread_id"), py::arg("num_threads"), py::arg("start_idx"),
-        py::arg("end_idx"),
-        "Execute threaded attention output with AVX optimizations.");
+        py::arg("thread_id"), py::arg("thread_num"), py::arg("start_idx"),
+        py::arg("end_idx"), "simple");
 }

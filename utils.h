@@ -1,23 +1,19 @@
+#include <cuda_fp16.h>
 #include <immintrin.h>
+#include <stdlib.h>
+#include <unistd.h>
 
-inline float hsum(__m128 x) {
-  x = _mm_add_ps(x, _mm_movehl_ps(x, x));
-  x = _mm_add_ss(x, _mm_movehdup_ps(x));
+#include <algorithm>
+#include <cmath>
 
-  // __m128 t;
-  // t = _mm_shuffle_ps(x, x, _MM_SHUFFLE(2, 3, 0, 1));
-  // x = _mm_add_ps(x, t);
-  // t = _mm_movehl_ps(t, x);
-  // x = _mm_add_ss(x, t);
+inline float hsum(__m128 x);
+inline float hsum(__m256 x);
 
-  return _mm_cvtss_f32(x);
-  // __m128 t = _mm_add_ps(x, _mm_movehl_ps(x, x));  // add high and low
-  // t = _mm_add_ps(
-  //     t, _mm_shuffle_ps(t, t, _MM_SHUFFLE(1, 0, 3, 2)));  // add across lanes
-  // return _mm_cvtss_f32(t);                                // get the result
-}
+void flush_cache();
 
-inline float hsum(__m256 x) {
-  return hsum(
-      _mm_add_ps(_mm256_extractf128_ps(x, 1), _mm256_castps256_ps128(x)));
-}
+float calculate_mse(const float *C, const float *golden_output, const size_t m);
+float calculate_mae(const float *C, const float *golden_output, const size_t m);
+float calculate_mse_half(const half *C, const float *golden_output,
+                         const size_t m);
+float calculate_mae_half(const half *C, const float *golden_output,
+                         const size_t m);

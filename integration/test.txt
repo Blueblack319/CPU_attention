@@ -1,0 +1,4 @@
+True
+True
+True
+Main thread sleeping for 2 seconds before setting ready_flag...

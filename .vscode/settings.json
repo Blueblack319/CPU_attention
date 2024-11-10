@@ -58,6 +58,17 @@
         "ranges": "cpp",
         "stop_token": "cpp",
         "thread": "cpp",
-        "cfenv": "cpp"
-    }
+        "cfenv": "cpp",
+        "codecvt": "cpp",
+        "forward_list": "cpp",
+        "list": "cpp",
+        "map": "cpp",
+        "set": "cpp",
+        "unordered_set": "cpp",
+        "iomanip": "cpp",
+        "typeindex": "cpp",
+        "valarray": "cpp",
+        "variant": "cpp"
+    },
+    "cmake.sourceDirectory": "/home2/jaehoon/CPU_attention/integration"
 }

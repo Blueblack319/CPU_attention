@@ -1,13 +1,20 @@
-#include "value_gemv.h"
+#include <cblas.h>
+#include <cuda_fp16.h>
+#include <immintrin.h>
 
-void attn_output_trusted(float* values, const float* logits, float* result,
-                         int const num_head, int const batch_size, int const K,
-                         int const Dh, int const logits_head_offset,
-                         int const logits_batch_offset,
-                         int const values_head_offset,
-                         int const values_batch_offset,
-                         int const result_head_offset,
-                         int const result_batch_offset) {
+#include <atomic>
+#include <vector>
+
+#include "utils.h"
+
+void key_gemv_trusted(float* values, const float* logits, float* result,
+                      int const num_head, int const batch_size, int const K,
+                      int const Dh, int const logits_head_offset,
+                      int const logits_batch_offset,
+                      int const values_head_offset,
+                      int const values_batch_offset,
+                      int const result_head_offset,
+                      int const result_batch_offset) {
   // Multiply
   for (int i = 0; i < num_head; ++i) {
     for (int j = 0; j < batch_size; ++j) {
@@ -59,6 +66,7 @@ void attn_output_trusted(float* values, const float* logits, float* result,
           c06 = _mm256_add_ps(c06, v6);
           c07 = _mm256_add_ps(c07, v7);
         }
+
         // Store the accumulated result back into the result array
         _mm256_store_ps(
             result + i * result_head_offset + j * result_batch_offset + l, c00);
@@ -88,7 +96,7 @@ void attn_output_trusted(float* values, const float* logits, float* result,
   }
 }
 
-void attn_output_trusted_threaded(
+void key_gemv_trusted_threaded(
     float* values, const float* logits, float* result, int const num_head,
     int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
@@ -187,15 +195,17 @@ void attn_output_trusted_threaded(
   }
 }
 
-void attn_output_3_threaded(
-    float* values, const float* logits, float* result, int const num_head,
-    int const batch_size, int const K, int const Dh,
-    int const values_head_offset, int const values_batch_offset,
-    int const logits_head_offset, int const logits_batch_offset,
-    int const result_head_offset, int const result_batch_offset,
-    int const thread_id, int const num_threads, int const start_idx,
-    int const end_idx, std::atomic<bool>* ready_flag,
-    std::atomic<bool>* finished_flag) {
+void key_gemv_3_threaded(float* values, const float* logits, float* result,
+                         int const num_head, int const batch_size, int const K,
+                         int const Dh, int const values_head_offset,
+                         int const values_batch_offset,
+                         int const logits_head_offset,
+                         int const logits_batch_offset,
+                         int const result_head_offset,
+                         int const result_batch_offset, int const thread_id,
+                         int const num_threads, int const start_idx,
+                         int const end_idx, std::atomic<bool>* ready_flag,
+                         std::atomic<bool>* finished_flag) {
   while (!ready_flag->load(std::memory_order_acquire)) {
     // Busy-wait (spinlock) until the main thread signals ready
   }
@@ -280,14 +290,12 @@ void attn_output_3_threaded(
   finished_flag->store(true, std::memory_order_release);
 }
 
-void attn_output_test(float* values, const float* logits, float* result,
-                      int const num_head, int const batch_size, int const K,
-                      int const Dh, int const values_head_offset,
-                      int const values_batch_offset,
-                      int const logits_head_offset,
-                      int const logits_batch_offset,
-                      int const result_head_offset,
-                      int const result_batch_offset) {
+void key_gemv_test(float* values, const float* logits, float* result,
+                   int const num_head, int const batch_size, int const K,
+                   int const Dh, int const values_head_offset,
+                   int const values_batch_offset, int const logits_head_offset,
+                   int const logits_batch_offset, int const result_head_offset,
+                   int const result_batch_offset) {
   // Multiply and Add
   // Parallelize over num_head and batch_size
   // #pragma omp parallel for collapse(2)
@@ -405,7 +413,7 @@ void attn_output_test(float* values, const float* logits, float* result,
   }
 }
 
-void attn_output_threaded(
+void key_gemv_threaded(
     float* values, float* logits, float* result, int const num_head,
     int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
@@ -544,7 +552,7 @@ void attn_output_threaded(
   }
 }
 
-void attn_output_mul_add_threaded(
+void key_gemv_mul_add_threaded(
     float* values, const float* logits, float* result, int const num_head,
     int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
@@ -715,14 +723,14 @@ void attn_output_mul_add_threaded(
   }
 }
 
-void attn_output_mul_add(float* values, const float* logits, float* result,
-                         int const num_head, int const batch_size, int const K,
-                         int const Dh, int const values_head_offset,
-                         int const values_batch_offset,
-                         int const logits_head_offset,
-                         int const logits_batch_offset,
-                         int const result_head_offset,
-                         int const result_batch_offset) {
+void key_gemv_mul_add(float* values, const float* logits, float* result,
+                      int const num_head, int const batch_size, int const K,
+                      int const Dh, int const values_head_offset,
+                      int const values_batch_offset,
+                      int const logits_head_offset,
+                      int const logits_batch_offset,
+                      int const result_head_offset,
+                      int const result_batch_offset) {
   // Multiply
   for (int i = 0; i < num_head; ++i) {
     for (int j = 0; j < batch_size; ++j) {
@@ -876,8 +884,8 @@ void attn_output_mul_add(float* values, const float* logits, float* result,
   }
 }
 
-void attn_output_1(float* values, float* values_t, const float* logits,
-                   float* result, int K, int Dh) {
+void key_gemv_1(float* values, float* values_t, const float* logits,
+                float* result, int K, int Dh) {
   transpose_matrix_avx2_2(values, values_t, K, Dh);
   for (int i = 0; i < Dh; i += 8) {
     __m256 c00 = _mm256_setzero_ps();
