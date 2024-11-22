@@ -32,7 +32,6 @@ void value_gemv_threaded(float* values, float* logits, float* result,
   // while (!(ready_flag->load(std::memory_order_acquire))) {
   while (!(*ready_flag)) {
   }
-  printf("R: %d", *ready_flag);
   // Multiply and Add
   for (int idx = start_idx; idx < end_idx; ++idx) {
     int i = idx / batch_size;
@@ -508,6 +507,10 @@ bool is_finished() { return true; }
 //     finished_flags[i].store(false, std::memory_order_release);
 // }
 void clear_flags() {
+  // ready_flag.store(false, std::memory_order_release);
+  // done_flag.store(false, std::memory_order_release);
+  // for (int i = 0; i < THREAD_NUM; ++i)
+  //   finished_flags[i].store(false, std::memory_order_release);
   return;
 }
 }

@@ -94,8 +94,13 @@ def test_with_threading(
     out_logits_batch_offset,
     is_key_gemv,
 ):
-    ready_flag = False
-    done_flag = False
+    # ready_flag = False
+    # done_flag = False
+    # Allocate flags to the shared memory
+    ready_flag_shm = shared_memory.SharedMemory(name='ready_flag', size=1, create=True)
+    ready_flag_shm.buf[0] = 0
+    done_flag_shm = shared_memory.SharedMemory(name='done_flag', size=1, create=True)
+    done_flag_shm.buf[0] = 0
 
     def task_value_gemv():
         lib.prepare_value_gemv(
@@ -113,11 +118,10 @@ def test_with_threading(
             ctypes.c_int(out_logits_head_offset),
             ctypes.c_int(out_logits_batch_offset),
             ctypes.c_int(thread_num),
-            ctypes.byref(ctypes.c_bool(ready_flag)),
-            ctypes.byref(ctypes.c_bool(done_flag)),
         )
 
     def task_key_gemv():
+
         lib.prepare_key_gemv(
             ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -133,8 +137,6 @@ def test_with_threading(
             ctypes.c_int(out_logits_head_offset),
             ctypes.c_int(out_logits_batch_offset),
             ctypes.c_int(thread_num),
-            ctypes.byref(ctypes.c_bool(ready_flag)),
-            ctypes.byref(ctypes.c_bool(done_flag)),
         )
 
     if is_key_gemv:
@@ -150,18 +152,25 @@ def test_with_threading(
     print("=====================================================")
     start_t = time.perf_counter_ns()
     # lib.set_ready_flag()
-    ready_flag = True
+    # ready_flag = True
+    ready_flag_shm.buf[0] = 1
 
     # while not lib.is_finished():
     #     pass
     # fin = lib.is_finished()
-    while not done_flag:
+    while not done_flag_shm.buf[0]:
         continue
 
     end_t = time.perf_counter_ns()
     duration = end_t - start_t
     print(f"Took {duration*1e-3} microseconds")
     # lib.clear_flags()
+
+    # Close and release the shared memory 
+    ready_flag_shm.close()
+    done_flag_shm.close()
+    ready_flag_shm.unlink()
+    done_flag_shm.unlink()
     process.join()
 
 
