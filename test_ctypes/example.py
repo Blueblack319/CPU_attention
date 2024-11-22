@@ -1,7 +1,7 @@
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing.pool import ThreadPool
-import multiprocessing
+from multiprocessing import Process
 import time
 import ctypes
 import numpy as np
@@ -94,6 +94,9 @@ def test_with_threading(
     out_logits_batch_offset,
     is_key_gemv,
 ):
+    ready_flag = False
+    done_flag = False
+
     def task_value_gemv():
         lib.prepare_value_gemv(
             ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -110,6 +113,8 @@ def test_with_threading(
             ctypes.c_int(out_logits_head_offset),
             ctypes.c_int(out_logits_batch_offset),
             ctypes.c_int(thread_num),
+            ctypes.byref(ctypes.c_bool(ready_flag)),
+            ctypes.byref(ctypes.c_bool(done_flag)),
         )
 
     def task_key_gemv():
@@ -128,13 +133,17 @@ def test_with_threading(
             ctypes.c_int(out_logits_head_offset),
             ctypes.c_int(out_logits_batch_offset),
             ctypes.c_int(thread_num),
+            ctypes.byref(ctypes.c_bool(ready_flag)),
+            ctypes.byref(ctypes.c_bool(done_flag)),
         )
 
     if is_key_gemv:
-        thread = threading.Thread(target=task_key_gemv)
+        # thread = threading.Thread(target=task_key_gemv)
+        process = Process(target=task_key_gemv)
     else:
-        thread = threading.Thread(target=task_value_gemv)
-    thread.start()
+        # thread = threading.Thread(target=task_value_gemv)
+        process = Process(target=task_value_gemv)
+    process.start()
 
     time.sleep(1)
 
@@ -144,13 +153,13 @@ def test_with_threading(
 
     # while not lib.is_finished():
     #     pass
-    fin = lib.is_finished()
+    # fin = lib.is_finished()
 
     end_t = time.perf_counter_ns()
     duration = end_t - start_t
-    print(f"Took {duration*1e-3} microseconds {fin}")
+    print(f"Took {duration*1e-3} microseconds")
     lib.clear_flags()
-    thread.join()
+    process.join()
 
 
 def test_value_gemv(batch_size, K, thread_num):
