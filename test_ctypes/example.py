@@ -97,9 +97,9 @@ def test_with_threading(
     # ready_flag = False
     # done_flag = False
     # Allocate flags to the shared memory
-    ready_flag_shm = shared_memory.SharedMemory(name='ready_flag', size=1, create=True)
+    ready_flag_shm = shared_memory.SharedMemory(name="ready_flag", size=1, create=True)
     ready_flag_shm.buf[0] = 0
-    done_flag_shm = shared_memory.SharedMemory(name='done_flag', size=1, create=True)
+    done_flag_shm = shared_memory.SharedMemory(name="done_flag", size=1, create=True)
     done_flag_shm.buf[0] = 0
 
     def task_value_gemv():
@@ -166,7 +166,7 @@ def test_with_threading(
     print(f"Took {duration*1e-3} microseconds")
     # lib.clear_flags()
 
-    # Close and release the shared memory 
+    # Close and release the shared memory
     ready_flag_shm.close()
     done_flag_shm.close()
     ready_flag_shm.unlink()
