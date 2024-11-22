@@ -9,6 +9,7 @@
 #include <iostream>
 #include <thread>
 #include <vector>
+#include <algorithm>
 #define THREAD_NUM 48
 
 extern "C"
@@ -18,6 +19,7 @@ extern "C"
 
   // Define the finished flag for each thread
   std::atomic<bool> finished_flags[THREAD_NUM];
+  double durations[THREAD_NUM];
   // std::atomic<bool> done_flag(false);
 
   // Value GEMV with multiple threads
@@ -31,15 +33,17 @@ extern "C"
                            int const result_batch_offset, int const thread_id,
                            int const thread_num, int const start_idx,
                            int const end_idx, std::atomic<bool> *ready_flag,
-                           std::atomic<bool> *finished_flag)
+                           std::atomic<bool> *finished_flag, double *duration_t)
   {
+    static struct timespec start, end;
+    double duration;
     // printf("Ready Flag: %p\n", ready_flag);
     // while (!(*ready_flag)) {
     while (!(ready_flag->load(std::memory_order_acquire)))
     {
-      // sleep(1);
-      // printf("Ready Flag: %d\n", *ready_flag);
     }
+    clock_gettime(CLOCK_REALTIME, &start);
+
     // printf("Ready Flag: %p\n", ready_flag);
     // Multiply and Add
     for (int idx = start_idx; idx < end_idx; ++idx)
@@ -161,6 +165,13 @@ extern "C"
     }
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
+    clock_gettime(CLOCK_REALTIME, &end);
+    *duration_t = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    // *duration_t = (start.tv_sec) + (start.tv_nsec) / 1e9;
+    // duration = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    // printf("start: %f\n", start.tv_sec + start.tv_nsec / 1e9);
+    // printf("end: %f\n", end.tv_sec + end.tv_nsec / 1e9);
+    // printf("Duration: %f\n", duration);
   }
 
   inline float hsum_128(__m128 x)
@@ -378,7 +389,7 @@ extern "C"
           value_gemv_threaded, values, logits, result, head_num, batch_size, K,
           Dh, values_head_offset, values_batch_offset, logits_head_offset,
           logits_batch_offset, result_head_offset, result_batch_offset, t,
-          thread_num, start_idx, end_idx, bool_ptr_ready_flag, &finished_flags[t]);
+          thread_num, start_idx, end_idx, bool_ptr_ready_flag, &finished_flags[t], &durations[t]);
 
       // Get the native handle for the created thread
       pthread_t nativeHandle = threads.back().native_handle();
@@ -447,6 +458,13 @@ extern "C"
 
     for (auto &thread : threads)
       thread.join();
+
+    // DEBUGGING
+    std::sort(durations, durations + THREAD_NUM);
+    for (auto duration : durations)
+    {
+      std::cout << duration << "\n";
+    }
 
     // Unmap and clean up the share memory
     munmap(ptr_ready_flag, flag_size);

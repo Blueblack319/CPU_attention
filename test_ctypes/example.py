@@ -121,7 +121,6 @@ def test_with_threading(
         )
 
     def task_key_gemv():
-
         lib.prepare_key_gemv(
             ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -147,7 +146,7 @@ def test_with_threading(
         process = Process(target=task_value_gemv)
     process.start()
 
-    time.sleep(1)
+    time.sleep(2)
 
     print("=====================================================")
     start_t = time.perf_counter_ns()
