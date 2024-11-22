@@ -1,7 +1,7 @@
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing.pool import ThreadPool
-from multiprocessing import Process
+from multiprocessing import Process, shared_memory
 import time
 import ctypes
 import numpy as np
@@ -149,16 +149,19 @@ def test_with_threading(
 
     print("=====================================================")
     start_t = time.perf_counter_ns()
-    lib.set_ready_flag()
+    # lib.set_ready_flag()
+    ready_flag = True
 
     # while not lib.is_finished():
     #     pass
     # fin = lib.is_finished()
+    while not done_flag:
+        continue
 
     end_t = time.perf_counter_ns()
     duration = end_t - start_t
     print(f"Took {duration*1e-3} microseconds")
-    lib.clear_flags()
+    # lib.clear_flags()
     process.join()
 
 
