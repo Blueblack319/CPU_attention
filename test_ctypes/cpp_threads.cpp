@@ -1,25 +1,26 @@
 #include <immintrin.h>
 #include <sched.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include <atomic>
 #include <iostream>
 #include <thread>
 #include <vector>
-#include <unistd.h>
+#include <algorithm>
 #define THREAD_NUM 48
 
 extern "C"
 {
 
+  // std::atomic<bool> ready_flag(false);
+
   // Define the finished flag for each thread
   std::atomic<bool> finished_flags[THREAD_NUM];
-  std::atomic<bool> done_flag(false);
-  std::atomic<bool> ready_flag(false);
-
-  // Store the time or duration for each thread
   double durations[THREAD_NUM];
-  static struct timespec _start, _end;
+  // std::atomic<bool> done_flag(false);
 
   // Value GEMV with multiple threads
   void value_gemv_threaded(float *values, float *logits, float *result,
@@ -32,16 +33,18 @@ extern "C"
                            int const result_batch_offset, int const thread_id,
                            int const thread_num, int const start_idx,
                            int const end_idx, std::atomic<bool> *ready_flag,
-                           std::atomic<bool> *finished_flag, double *duration)
+                           std::atomic<bool> *finished_flag, double *duration_t)
   {
-    struct timespec start, end;
-
+    static struct timespec start, end;
+    double duration;
+    // printf("Ready Flag: %p\n", ready_flag);
+    // while (!(*ready_flag)) {
     while (!(ready_flag->load(std::memory_order_acquire)))
     {
-      // while (!(*ready_flag)) {
     }
     clock_gettime(CLOCK_REALTIME, &start);
 
+    // printf("Ready Flag: %p\n", ready_flag);
     // Multiply and Add
     for (int idx = start_idx; idx < end_idx; ++idx)
     {
@@ -163,9 +166,12 @@ extern "C"
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
     clock_gettime(CLOCK_REALTIME, &end);
-    *duration = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
-    // *duration = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
-    // *duration = end.tv_nsec / 1e3;
+    *duration_t = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    // *duration_t = (start.tv_sec) + (start.tv_nsec) / 1e9;
+    // duration = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    // printf("start: %f\n", start.tv_sec + start.tv_nsec / 1e9);
+    // printf("end: %f\n", end.tv_sec + end.tv_nsec / 1e9);
+    // printf("Duration: %f\n", duration);
   }
 
   inline float hsum_128(__m128 x)
@@ -188,12 +194,12 @@ extern "C"
       int const keys_batch_offset, int const queries_haed_offset,
       int const queries_batch_offset, int const logits_head_offset,
       int const logits_batch_offset, int const thread_id, int const num_threads,
-      int const start_idx, int const end_idx, std::atomic<bool> *ready_flag,
+      int const start_idx, int const end_idx, bool *ready_flag,
       std::atomic<bool> *finished_flag)
   {
-    while (!(ready_flag->load(std::memory_order_acquire)))
+    // while (!(ready_flag->load(std::memory_order_acquire))) {
+    while (!(*ready_flag))
     {
-      // while (!(*ready_flag)) {
     }
     // Multiply and Add
     for (int idx = start_idx; idx < end_idx; ++idx)
@@ -320,10 +326,9 @@ extern "C"
     }
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
-    while (ready_flag->load(std::memory_order_acquire))
-    {
-      // Wait until ready_flag is reset
-    }
+    // while (ready_flag->load(std::memory_order_acquire)) {
+    //   // Wait until ready_flag is reset
+    // }
   }
 
   // Function to prepare the threads for Value GEMV
@@ -336,8 +341,27 @@ extern "C"
                           int const result_head_offset,
                           int const result_batch_offset, int const thread_num)
   {
-    // printf("Ready Flag: %p\n", &ready_flag);
-    // printf("Done Flag: %p\n", &done_flag);
+    // Setup to map the shared memory
+    size_t flag_size = 1;
+    // Open the shared memory
+    int fd_ready_flag = shm_open("ready_flag", O_RDWR, 0666);
+    int fd_done_flag = shm_open("done_flag", O_RDWR, 0666);
+    if (fd_ready_flag == -1 || fd_done_flag == -1)
+    {
+      std::cerr << "Error opening shared memory" << std::endl;
+      return;
+    }
+    // Map the shared memory
+    void *ptr_ready_flag = mmap(nullptr, flag_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_ready_flag, 0);
+    void *ptr_done_flag = mmap(nullptr, flag_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd_done_flag, 0);
+    if (ptr_ready_flag == MAP_FAILED || ptr_done_flag == MAP_FAILED)
+    {
+      std::cerr << "Error mapping shared memory" << std::endl;
+      return;
+    }
+    std::atomic<bool> *bool_ptr_ready_flag = static_cast<std::atomic<bool> *>(ptr_ready_flag);
+    bool *bool_ptr_done_flag = static_cast<bool *>(ptr_done_flag);
+
     // Each thread works on its slice
     int const total_work = head_num * batch_size;
     int const work_per_thread = total_work / thread_num;
@@ -356,11 +380,16 @@ extern "C"
       start_idx = end_idx;
       end_idx = t < work_remained ? start_idx + work_per_thread + 1
                                   : start_idx + work_per_thread;
+      // threads.emplace_back(
+      //     value_gemv_threaded, values, logits, result, head_num, batch_size, K,
+      //     Dh, values_head_offset, values_batch_offset, logits_head_offset,
+      //     logits_batch_offset, result_head_offset, result_batch_offset, t,
+      //     thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t]);
       threads.emplace_back(
           value_gemv_threaded, values, logits, result, head_num, batch_size, K,
           Dh, values_head_offset, values_batch_offset, logits_head_offset,
           logits_batch_offset, result_head_offset, result_batch_offset, t,
-          thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t], &durations[t]);
+          thread_num, start_idx, end_idx, bool_ptr_ready_flag, &finished_flags[t], &durations[t]);
 
       // Get the native handle for the created thread
       pthread_t nativeHandle = threads.back().native_handle();
@@ -423,12 +452,25 @@ extern "C"
         }
       }
     }
-    done_flag.store(true, std::memory_order_release);
-    // DEBUGGING
-    for (auto dur : durations)
-      printf("Duration: %f\n", dur);
+    // done_flag.store(true, std::memory_order_release);
+    // *done_flag = true;
+    *bool_ptr_done_flag = true;
+
     for (auto &thread : threads)
       thread.join();
+
+    // DEBUGGING
+    std::sort(durations, durations + THREAD_NUM);
+    for (auto duration : durations)
+    {
+      std::cout << duration << "\n";
+    }
+
+    // Unmap and clean up the share memory
+    munmap(ptr_ready_flag, flag_size);
+    munmap(ptr_done_flag, flag_size);
+    close(fd_ready_flag);
+    close(fd_done_flag);
   }
 
   // [ ] Function to prepare the threads for Value GEMV
@@ -439,7 +481,7 @@ extern "C"
                         int const queries_head_offset,
                         int const queries_batch_offset,
                         int const logits_head_offset,
-                        int const logits_batch_offset, int const thread_num)
+                        int const logits_batch_offset, int const thread_num, bool *ready_flag, bool *done_flag)
   {
     // printf("Ready Flag: %p\n", &ready_flag);
     // printf("Done Flag: %p\n", &done_flag);
@@ -462,11 +504,16 @@ extern "C"
       end_idx = t < work_remained ? start_idx + work_per_thread + 1
                                   : start_idx + work_per_thread;
 
+      // threads.emplace_back(key_gemv_threaded, keys, queries, logits, head_num,
+      //                      batch_size, K, Dh, keys_head_offset, keys_batch_offset,
+      //                      queries_head_offset, queries_batch_offset,
+      //                      logits_head_offset, logits_batch_offset, t, thread_num,
+      //                      start_idx, end_idx, &ready_flag, &finished_flags[t]);
       threads.emplace_back(key_gemv_threaded, keys, queries, logits, head_num,
                            batch_size, K, Dh, keys_head_offset, keys_batch_offset,
                            queries_head_offset, queries_batch_offset,
                            logits_head_offset, logits_batch_offset, t, thread_num,
-                           start_idx, end_idx, &ready_flag, &finished_flags[t]);
+                           start_idx, end_idx, ready_flag, &finished_flags[t]);
 
       // Get the native handle for the created thread
       pthread_t nativeHandle = threads.back().native_handle();
@@ -529,45 +576,38 @@ extern "C"
         }
       }
     }
-    done_flag.store(true, std::memory_order_release);
+    // done_flag.store(true, std::memory_order_release);
+    *done_flag = true;
     for (auto &thread : threads)
       thread.join();
   }
 
   // Function to set the ready_flag from Python
-  void set_ready_flag()
-  {
-    usleep(100000);
-    // clock_gettime(CLOCK_REALTIME, &_start);
-    if (clock_gettime(CLOCK_REALTIME, &_start) != 0)
-    {
-      perror("clock_gettime failed"); // Log if clock_gettime fails
-      return;
-    }
-    ready_flag.store(true, std::memory_order_release);
-  }
+  // void set_ready_flag() { ready_flag.store(true, std::memory_order_release); }
+  void set_ready_flag() { return; }
 
   // Function to check the all threads are done
-  bool is_finished() { return done_flag.load(std::memory_order_acquire); }
-  // bool is_finished()
-  // {
-  //   while (!done_flag.load(std::memory_order_acquire))
-  //   {
+  // bool is_finished() { return done_flag.load(std::memory_order_acquire); }
+  // bool is_finished() {
+  //   while (!done_flag.load(std::memory_order_acquire)) {
   //   }
   //   return true;
   // }
-  double get_duration()
-  {
-    clock_gettime(CLOCK_REALTIME, &_end);
-    return ((_end.tv_sec - _start.tv_sec) + (_end.tv_nsec - _start.tv_nsec) / 1e9) * 1e6;
-  }
+  bool is_finished() { return true; }
 
   // Function to clear all flags
+  // void clear_flags() {
+  //   ready_flag.store(false, std::memory_order_release);
+  //   done_flag.store(false, std::memory_order_release);
+  //   for (int i = 0; i < THREAD_NUM; ++i)
+  //     finished_flags[i].store(false, std::memory_order_release);
+  // }
   void clear_flags()
   {
-    ready_flag.store(false, std::memory_order_release);
-    done_flag.store(false, std::memory_order_release);
-    for (int i = 0; i < THREAD_NUM; ++i)
-      finished_flags[i].store(false, std::memory_order_release);
+    // ready_flag.store(false, std::memory_order_release);
+    // done_flag.store(false, std::memory_order_release);
+    // for (int i = 0; i < THREAD_NUM; ++i)
+    //   finished_flags[i].store(false, std::memory_order_release);
+    return;
   }
 }

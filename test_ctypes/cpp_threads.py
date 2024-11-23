@@ -1,14 +1,14 @@
 import threading
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing.pool import ThreadPool
-import multiprocessing
+from multiprocessing import Process, shared_memory
 import time
 import ctypes
 import numpy as np
 import torch
 import argparse
 
-ITER = 1
+ITER = 100
 
 
 def aligned_array(size, dtype=np.float32, alignment=32):
@@ -75,8 +75,6 @@ lib.is_finished.argtypes = []
 lib.is_finished.restype = ctypes.c_bool
 lib.clear_flags.argtypes = []
 lib.clear_flags.restype = None
-lib.get_duration.argtypes = []
-lib.get_duration.restype = ctypes.c_double
 
 
 def test_with_threading(
@@ -96,6 +94,14 @@ def test_with_threading(
     out_logits_batch_offset,
     is_key_gemv,
 ):
+    # ready_flag = False
+    # done_flag = False
+    # Allocate flags to the shared memory
+    ready_flag_shm = shared_memory.SharedMemory(name="ready_flag", size=1, create=True)
+    ready_flag_shm.buf[0] = 0
+    done_flag_shm = shared_memory.SharedMemory(name="done_flag", size=1, create=True)
+    done_flag_shm.buf[0] = 0
+
     def task_value_gemv():
         lib.prepare_value_gemv(
             ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -133,30 +139,38 @@ def test_with_threading(
         )
 
     if is_key_gemv:
-        thread = threading.Thread(target=task_key_gemv)
+        # thread = threading.Thread(target=task_key_gemv)
+        process = Process(target=task_key_gemv)
     else:
-        thread = threading.Thread(target=task_value_gemv)
-    thread.start()
+        # thread = threading.Thread(target=task_value_gemv)
+        process = Process(target=task_value_gemv)
+    process.start()
 
-    # time.sleep(1)
-    # dummy = 0
-    # while dummy < 100000:
-    #     dummy += 1
+    time.sleep(2)
 
     print("=====================================================")
-    # start_t = time.perf_counter_ns()
-    lib.set_ready_flag()
+    start_t = time.perf_counter_ns()
+    # lib.set_ready_flag()
+    # ready_flag = True
+    ready_flag_shm.buf[0] = 1
 
-    while not lib.is_finished():
-        pass
+    # while not lib.is_finished():
+    #     pass
     # fin = lib.is_finished()
+    while not done_flag_shm.buf[0]:
+        continue
 
-    # end_t = time.perf_counter_ns()
-    # duration = end_t - start_t
-    duration = lib.get_duration()
-    print(f"Took {duration} microseconds")
-    lib.clear_flags()
-    thread.join()
+    end_t = time.perf_counter_ns()
+    duration = end_t - start_t
+    print(f"Took {duration*1e-3} microseconds")
+    # lib.clear_flags()
+
+    # Close and release the shared memory
+    ready_flag_shm.close()
+    done_flag_shm.close()
+    ready_flag_shm.unlink()
+    done_flag_shm.unlink()
+    process.join()
 
 
 def test_value_gemv(batch_size, K, thread_num):
