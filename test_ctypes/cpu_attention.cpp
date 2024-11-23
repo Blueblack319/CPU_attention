@@ -7,6 +7,7 @@
 #include <thread>
 #include <vector>
 #include <unistd.h>
+#include <algorithm>
 #define THREAD_NUM 48
 
 extern "C"
@@ -19,7 +20,7 @@ extern "C"
 
   // Store the time or duration for each thread
   double durations[THREAD_NUM];
-  static struct timespec _start, _end;
+  static struct timespec _start, _end, _end_1;
 
   // Value GEMV with multiple threads
   void value_gemv_threaded(float *values, float *logits, float *result,
@@ -163,9 +164,9 @@ extern "C"
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
     clock_gettime(CLOCK_REALTIME, &end);
-    *duration = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+    // *duration = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
     // *duration = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
-    // *duration = end.tv_nsec / 1e3;
+    *duration = start.tv_nsec / 1e3;
   }
 
   inline float hsum_128(__m128 x)
@@ -423,8 +424,10 @@ extern "C"
         }
       }
     }
+    clock_gettime(CLOCK_REALTIME, &_end);
     done_flag.store(true, std::memory_order_release);
     // DEBUGGING
+    std::sort(durations, durations + THREAD_NUM);
     for (auto dur : durations)
       printf("Duration: %f\n", dur);
     for (auto &thread : threads)
@@ -537,18 +540,13 @@ extern "C"
   // Function to set the ready_flag from Python
   void set_ready_flag()
   {
-    usleep(100000);
-    // clock_gettime(CLOCK_REALTIME, &_start);
-    if (clock_gettime(CLOCK_REALTIME, &_start) != 0)
-    {
-      perror("clock_gettime failed"); // Log if clock_gettime fails
-      return;
-    }
+    usleep(1000000);
+    clock_gettime(CLOCK_REALTIME, &_start);
     ready_flag.store(true, std::memory_order_release);
   }
 
   // Function to check the all threads are done
-  bool is_finished() { return done_flag.load(std::memory_order_acquire); }
+  // bool is_finished() { return done_flag.load(std::memory_order_acquire); }
   // bool is_finished()
   // {
   //   while (!done_flag.load(std::memory_order_acquire))
@@ -556,6 +554,16 @@ extern "C"
   //   }
   //   return true;
   // }
+  double is_finished()
+  {
+    while (!done_flag.load(std::memory_order_acquire))
+    {
+    }
+    clock_gettime(CLOCK_REALTIME, &_end_1);
+    printf("Took 1 %f microseconds", ((_end_1.tv_sec - _start.tv_sec) + (_end_1.tv_nsec - _start.tv_nsec) / 1e9) * 1e6);
+    return ((_end.tv_sec - _start.tv_sec) + (_end.tv_nsec - _start.tv_nsec) / 1e9) * 1e6;
+  }
+
   double get_duration()
   {
     clock_gettime(CLOCK_REALTIME, &_end);

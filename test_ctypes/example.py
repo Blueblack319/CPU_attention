@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import argparse
 
-ITER = 1
+ITER = 2
 
 
 def aligned_array(size, dtype=np.float32, alignment=32):
@@ -72,7 +72,7 @@ lib.prepare_key_gemv.restype = None
 lib.set_ready_flag.argtypes = []
 lib.set_ready_flag.restype = None
 lib.is_finished.argtypes = []
-lib.is_finished.restype = ctypes.c_bool
+lib.is_finished.restype = ctypes.c_double
 lib.clear_flags.argtypes = []
 lib.clear_flags.restype = None
 lib.get_duration.argtypes = []
@@ -147,13 +147,14 @@ def test_with_threading(
     # start_t = time.perf_counter_ns()
     lib.set_ready_flag()
 
-    while not lib.is_finished():
-        pass
+    # while not lib.is_finished():
+    #     pass
     # fin = lib.is_finished()
 
     # end_t = time.perf_counter_ns()
     # duration = end_t - start_t
-    duration = lib.get_duration()
+    # duration = lib.get_duration()
+    duration = lib.is_finished()
     print(f"Took {duration} microseconds")
     lib.clear_flags()
     thread.join()
