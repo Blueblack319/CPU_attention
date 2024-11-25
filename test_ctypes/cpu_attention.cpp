@@ -8,7 +8,7 @@
 #include <vector>
 #include <unistd.h>
 #include <algorithm>
-#define THREAD_NUM 16
+#define THREAD_NUM 48
 
 extern "C"
 {
@@ -42,8 +42,8 @@ extern "C"
     {
       // while (!(*ready_flag)) {
     }
-    // clock_gettime(CLOCK_REALTIME, &start);
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    clock_gettime(CLOCK_REALTIME, &start);
+    // clock_gettime(CLOCK_MONOTONIC, &start);
 
     // Multiply and Add
     for (int idx = start_idx; idx < end_idx; ++idx)
@@ -165,8 +165,8 @@ extern "C"
     }
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
-    // clock_gettime(CLOCK_REALTIME, &end);
-    clock_gettime(CLOCK_MONOTONIC, &end);
+    clock_gettime(CLOCK_REALTIME, &end);
+    // clock_gettime(CLOCK_MONOTONIC, &end);
     // *duration = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
     // *duration = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
     duration->first = thread_id;
@@ -390,7 +390,7 @@ extern "C"
       if (t > 23)
       {
         // int id = 48 + (t - 23);
-        CPU_SET(48 + (t - 23), &cpuset); // Bind to specific CPU core
+        CPU_SET(48 + (t - 24), &cpuset); // Bind to specific CPU core
       }
       else
       {
@@ -434,11 +434,12 @@ extern "C"
     clock_gettime(CLOCK_MONOTONIC, &_end);
     done_flag.store(true, std::memory_order_release);
     // DEBUGGING
-    std::sort(thread_results, thread_results + THREAD_NUM, [](const pair_tr &i, const pair_tr &j)
+    std::sort(thread_results, thread_results + thread_num, [](const pair_tr &i, const pair_tr &j)
               { return i.second < j.second; });
-    for (auto result : thread_results)
-      printf("CPU: %d, duration: %ld\n", result.first, result.second);
-    printf("Variance: %ld\n", thread_results[THREAD_NUM - 1].second - thread_results[0].second);
+    // for (size_t i = 0; i < thread_num; i++)
+    // printf("CPU: %d, duration: %ld\n", thread_results[i].first, thread_results[i].second);
+
+    printf("Variance: %ld\n", thread_results[thread_num - 1].second - thread_results[0].second);
     for (auto &thread : threads)
       thread.join();
   }
@@ -501,7 +502,7 @@ extern "C"
       if (t > 23)
       {
         // int id = 48 + (t - 23);
-        CPU_SET(48 + (t - 23), &cpuset); // Bind to specific CPU core
+        CPU_SET(48 + (t - 24), &cpuset); // Bind to specific CPU core
       }
       else
       {

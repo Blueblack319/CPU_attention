@@ -7,8 +7,9 @@ import ctypes
 import numpy as np
 import torch
 import argparse
+import os
 
-ITER = 10
+ITER = 15
 
 
 def aligned_array(size, dtype=np.float32, alignment=32):
@@ -167,6 +168,25 @@ def test_with_threading(
 
 
 def test_value_gemv(batch_size, K, thread_num):
+    # Elevate the process to the highest priority(real-time class)
+    # SCHED_FIFO = 1
+    # sched_param = os.sched_param(sched_priority=99)
+    # try:
+    #     os.sched_setscheduler(0, SCHED_FIFO, sched_param)
+    # except PermissionError:
+    #     print("Permission denied. Try running as root.")
+
+    # pid = os.getpid()
+    # try:
+    #     os.sched_setaffinity(pid, [49])
+    # except AttributeError:
+    #     print("os.sched_setaffinity is not available on this platform.")
+
+    try:
+        os.nice(-20)
+    except PermissionError:
+        print("Permission denied. Try running as root.")
+
     head_num = 32
     Dh = 128
 
