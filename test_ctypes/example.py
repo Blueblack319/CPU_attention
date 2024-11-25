@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import argparse
 
-ITER = 2
+ITER = 1
 
 
 def aligned_array(size, dtype=np.float32, alignment=32):
@@ -138,12 +138,12 @@ def test_with_threading(
         thread = threading.Thread(target=task_value_gemv)
     thread.start()
 
-    # time.sleep(1)
+    time.sleep(2)
     # dummy = 0
     # while dummy < 100000:
     #     dummy += 1
 
-    print("=====================================================")
+    # print("=====================================================")
     # start_t = time.perf_counter_ns()
     lib.set_ready_flag()
 

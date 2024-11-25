@@ -12,14 +12,15 @@
 
 extern "C"
 {
-
   // Define the finished flag for each thread
   std::atomic<bool> finished_flags[THREAD_NUM];
   std::atomic<bool> done_flag(false);
   std::atomic<bool> ready_flag(false);
 
   // Store the time or duration for each thread
-  double durations[THREAD_NUM];
+  typedef std::pair<int, double> pair_tr;
+  pair_tr thread_results[THREAD_NUM];
+  // double thread_results[THREAD_NUM];
   static struct timespec _start, _end, _end_1;
 
   // Value GEMV with multiple threads
@@ -33,7 +34,7 @@ extern "C"
                            int const result_batch_offset, int const thread_id,
                            int const thread_num, int const start_idx,
                            int const end_idx, std::atomic<bool> *ready_flag,
-                           std::atomic<bool> *finished_flag, double *duration)
+                           std::atomic<bool> *finished_flag, pair_tr *duration)
   {
     struct timespec start, end;
 
@@ -166,7 +167,8 @@ extern "C"
     clock_gettime(CLOCK_REALTIME, &end);
     // *duration = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
     // *duration = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
-    *duration = start.tv_nsec / 1e3;
+    duration->first = thread_id;
+    duration->second = start.tv_nsec / 1e3;
   }
 
   inline float hsum_128(__m128 x)
@@ -361,7 +363,7 @@ extern "C"
           value_gemv_threaded, values, logits, result, head_num, batch_size, K,
           Dh, values_head_offset, values_batch_offset, logits_head_offset,
           logits_batch_offset, result_head_offset, result_batch_offset, t,
-          thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t], &durations[t]);
+          thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t], &thread_results[t]);
 
       // Get the native handle for the created thread
       pthread_t nativeHandle = threads.back().native_handle();
@@ -427,9 +429,10 @@ extern "C"
     clock_gettime(CLOCK_REALTIME, &_end);
     done_flag.store(true, std::memory_order_release);
     // DEBUGGING
-    std::sort(durations, durations + THREAD_NUM);
-    for (auto dur : durations)
-      printf("Duration: %f\n", dur);
+    std::sort(thread_results, thread_results + THREAD_NUM, [](const pair_tr &i, const pair_tr &j)
+              { return i.second < j.second; });
+    for (auto result : thread_results)
+      printf("CPU: %d, start: %f\n", result.first, result.second);
     for (auto &thread : threads)
       thread.join();
   }
@@ -540,7 +543,7 @@ extern "C"
   // Function to set the ready_flag from Python
   void set_ready_flag()
   {
-    usleep(1000000);
+    // usleep(1000000);
     clock_gettime(CLOCK_REALTIME, &_start);
     ready_flag.store(true, std::memory_order_release);
   }
