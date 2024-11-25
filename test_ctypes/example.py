@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import argparse
 
-ITER = 1
+ITER = 10
 
 
 def aligned_array(size, dtype=np.float32, alignment=32):
@@ -72,11 +72,14 @@ lib.prepare_key_gemv.restype = None
 lib.set_ready_flag.argtypes = []
 lib.set_ready_flag.restype = None
 lib.is_finished.argtypes = []
-lib.is_finished.restype = ctypes.c_double
+# lib.is_finished.restype = ctypes.c_double
+lib.is_finished.restype = ctypes.c_long
 lib.clear_flags.argtypes = []
 lib.clear_flags.restype = None
 lib.get_duration.argtypes = []
 lib.get_duration.restype = ctypes.c_double
+lib.wait_finished.argtypes = []
+lib.wait_finished.restype = None
 
 
 def test_with_threading(
@@ -134,27 +137,30 @@ def test_with_threading(
 
     if is_key_gemv:
         thread = threading.Thread(target=task_key_gemv)
+        # thread = multiprocessing.Process(target=task_key_gemv)
     else:
         thread = threading.Thread(target=task_value_gemv)
+        # thread = multiprocessing.Process(target=task_value_gemv)
     thread.start()
 
-    time.sleep(2)
+    time.sleep(1)
     # dummy = 0
     # while dummy < 100000:
     #     dummy += 1
 
-    # print("=====================================================")
-    # start_t = time.perf_counter_ns()
+    print("=====================================================")
+    start_t = time.perf_counter_ns()
     lib.set_ready_flag()
 
     # while not lib.is_finished():
     #     pass
     # fin = lib.is_finished()
 
-    # end_t = time.perf_counter_ns()
-    # duration = end_t - start_t
+    lib.wait_finished()
+    end_t = time.perf_counter_ns()
+    duration = (end_t - start_t) / 1e3
     # duration = lib.get_duration()
-    duration = lib.is_finished()
+    # duration = lib.is_finished() / 1e3
     print(f"Took {duration} microseconds")
     lib.clear_flags()
     thread.join()

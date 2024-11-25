@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import argparse
 
-ITER = 100
+ITER = 5
 
 
 def aligned_array(size, dtype=np.float32, alignment=32):
@@ -30,7 +30,7 @@ def aligned_tensor(size, dtype=torch.float32, alignment=32):
 
 
 # Load the shared library
-lib = ctypes.CDLL("./libattn.so")
+lib = ctypes.CDLL("./libcpp_threads.so")
 
 # Define the function prototypes
 lib.prepare_value_gemv.argtypes = [
@@ -162,7 +162,7 @@ def test_with_threading(
 
     end_t = time.perf_counter_ns()
     duration = end_t - start_t
-    print(f"Took {duration*1e-3} microseconds")
+    print(f"Took {duration/1e3} microseconds")
     # lib.clear_flags()
 
     # Close and release the shared memory

@@ -8,7 +8,7 @@
 #include <vector>
 #include <unistd.h>
 #include <algorithm>
-#define THREAD_NUM 48
+#define THREAD_NUM 16
 
 extern "C"
 {
@@ -18,7 +18,7 @@ extern "C"
   std::atomic<bool> ready_flag(false);
 
   // Store the time or duration for each thread
-  typedef std::pair<int, double> pair_tr;
+  typedef std::pair<int, long> pair_tr;
   pair_tr thread_results[THREAD_NUM];
   // double thread_results[THREAD_NUM];
   static struct timespec _start, _end, _end_1;
@@ -42,7 +42,8 @@ extern "C"
     {
       // while (!(*ready_flag)) {
     }
-    clock_gettime(CLOCK_REALTIME, &start);
+    // clock_gettime(CLOCK_REALTIME, &start);
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     // Multiply and Add
     for (int idx = start_idx; idx < end_idx; ++idx)
@@ -164,11 +165,14 @@ extern "C"
     }
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
-    clock_gettime(CLOCK_REALTIME, &end);
+    // clock_gettime(CLOCK_REALTIME, &end);
+    clock_gettime(CLOCK_MONOTONIC, &end);
     // *duration = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
     // *duration = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
     duration->first = thread_id;
-    duration->second = start.tv_nsec / 1e3;
+    // duration->second = start.tv_sec * 1e9 + start.tv_nsec;
+    duration->second = (end.tv_nsec) / 1e3;
+    // duration->second = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
   }
 
   inline float hsum_128(__m128 x)
@@ -426,13 +430,15 @@ extern "C"
         }
       }
     }
-    clock_gettime(CLOCK_REALTIME, &_end);
+    // clock_gettime(CLOCK_REALTIME, &_end);
+    clock_gettime(CLOCK_MONOTONIC, &_end);
     done_flag.store(true, std::memory_order_release);
     // DEBUGGING
     std::sort(thread_results, thread_results + THREAD_NUM, [](const pair_tr &i, const pair_tr &j)
               { return i.second < j.second; });
     for (auto result : thread_results)
-      printf("CPU: %d, start: %f\n", result.first, result.second);
+      printf("CPU: %d, duration: %ld\n", result.first, result.second);
+    printf("Variance: %ld\n", thread_results[THREAD_NUM - 1].second - thread_results[0].second);
     for (auto &thread : threads)
       thread.join();
   }
@@ -525,7 +531,6 @@ extern "C"
         {
           if (finished_flags[i].load(std::memory_order_acquire))
           {
-            //   clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
             thread_finished[i] = true;
           }
           else
@@ -544,7 +549,8 @@ extern "C"
   void set_ready_flag()
   {
     // usleep(1000000);
-    clock_gettime(CLOCK_REALTIME, &_start);
+    // clock_gettime(CLOCK_REALTIME, &_start);
+    clock_gettime(CLOCK_MONOTONIC, &_start);
     ready_flag.store(true, std::memory_order_release);
   }
 
@@ -557,14 +563,30 @@ extern "C"
   //   }
   //   return true;
   // }
-  double is_finished()
+  long is_finished()
   {
     while (!done_flag.load(std::memory_order_acquire))
     {
     }
-    clock_gettime(CLOCK_REALTIME, &_end_1);
-    printf("Took 1 %f microseconds", ((_end_1.tv_sec - _start.tv_sec) + (_end_1.tv_nsec - _start.tv_nsec) / 1e9) * 1e6);
-    return ((_end.tv_sec - _start.tv_sec) + (_end.tv_nsec - _start.tv_nsec) / 1e9) * 1e6;
+    // clock_gettime(CLOCK_REALTIME, &_end);
+    clock_gettime(CLOCK_MONOTONIC, &_end_1);
+    long seconds = _end.tv_sec - _start.tv_sec;
+    long nanoseconds = _end.tv_nsec - _start.tv_nsec;
+    // Handle case where nanoseconds roll over
+    if (nanoseconds < 0)
+    {
+      --seconds;
+      nanoseconds += 1000000000;
+    }
+    return seconds * 1e9 + nanoseconds;
+    // return ((_end.tv_sec - _start.tv_sec) + (_end.tv_nsec - _start.tv_nsec) / 1e9) * 1e6;
+  }
+
+  void wait_finished()
+  {
+    while (!done_flag.load(std::memory_order_acquire))
+    {
+    }
   }
 
   double get_duration()

@@ -21,6 +21,7 @@ extern "C"
   std::atomic<bool> finished_flags[THREAD_NUM];
   double durations[THREAD_NUM];
   // std::atomic<bool> done_flag(false);
+  static std::atomic<bool> *bool_ptr_done_flag;
 
   // Value GEMV with multiple threads
   void value_gemv_threaded(float *values, float *logits, float *result,
@@ -42,7 +43,8 @@ extern "C"
     while (!(ready_flag->load(std::memory_order_acquire)))
     {
     }
-    clock_gettime(CLOCK_REALTIME, &start);
+    // clock_gettime(CLOCK_REALTIME, &start);
+    clock_gettime(CLOCK_MONOTONIC, &start);
 
     // printf("Ready Flag: %p\n", ready_flag);
     // Multiply and Add
@@ -165,8 +167,9 @@ extern "C"
     }
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
-    clock_gettime(CLOCK_REALTIME, &end);
-    *duration_t = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
+    // clock_gettime(CLOCK_REALTIME, &end);
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    *duration_t = (end.tv_nsec) / 1e3;
     // *duration_t = (start.tv_sec) + (start.tv_nsec) / 1e9;
     // duration = (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
     // printf("start: %f\n", start.tv_sec + start.tv_nsec / 1e9);
@@ -360,7 +363,7 @@ extern "C"
       return;
     }
     std::atomic<bool> *bool_ptr_ready_flag = static_cast<std::atomic<bool> *>(ptr_ready_flag);
-    bool *bool_ptr_done_flag = static_cast<bool *>(ptr_done_flag);
+    bool_ptr_done_flag = static_cast<std::atomic<bool> *>(ptr_done_flag);
 
     // Each thread works on its slice
     int const total_work = head_num * batch_size;
@@ -454,7 +457,8 @@ extern "C"
     }
     // done_flag.store(true, std::memory_order_release);
     // *done_flag = true;
-    *bool_ptr_done_flag = true;
+    // *bool_ptr_done_flag = true;
+    bool_ptr_done_flag->store(true, std::memory_order_release);
 
     for (auto &thread : threads)
       thread.join();
@@ -594,6 +598,13 @@ extern "C"
   //   return true;
   // }
   bool is_finished() { return true; }
+
+  void wait_finished()
+  {
+    while (!bool_ptr_done_flag->load(std::memory_order_acquire))
+    {
+    }
+  }
 
   // Function to clear all flags
   // void clear_flags() {
