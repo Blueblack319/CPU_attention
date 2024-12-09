@@ -167,12 +167,10 @@ extern "C"
     finished_flag->store(true, std::memory_order_release);
     clock_gettime(CLOCK_REALTIME, &end);
     // clock_gettime(CLOCK_MONOTONIC, &end);
-    // *duration = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
-    // *duration = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
     duration->first = thread_id;
     // duration->second = start.tv_sec * 1e9 + start.tv_nsec;
-    duration->second = (end.tv_nsec) / 1e3;
-    // duration->second = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+    // duration->second = (end.tv_nsec) / 1e3;
+    duration->second = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
   }
 
   inline float hsum_128(__m128 x)
@@ -358,15 +356,19 @@ extern "C"
     // Init thread pool
     std::vector<std::thread> threads;
     int start_idx = 0, end_idx = 0;
+    int acc = 0;
     for (int t = 0; t < thread_num; ++t)
     {
       start_idx = end_idx;
       end_idx = t < work_remained ? start_idx + work_per_thread + 1
                                   : start_idx + work_per_thread;
+      int cpu_id = t + acc;
+      acc += 1;
+      // int cpu_id = t;
       threads.emplace_back(
           value_gemv_threaded, values, logits, result, head_num, batch_size, K,
           Dh, values_head_offset, values_batch_offset, logits_head_offset,
-          logits_batch_offset, result_head_offset, result_batch_offset, t,
+          logits_batch_offset, result_head_offset, result_batch_offset, cpu_id,
           thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t], &thread_results[t]);
 
       // Get the native handle for the created thread
@@ -387,17 +389,28 @@ extern "C"
       cpu_set_t cpuset;
       CPU_ZERO(&cpuset);
       // Method1
-      if (t > 23)
-      {
-        // int id = 48 + (t - 23);
-        CPU_SET(48 + (t - 24), &cpuset); // Bind to specific CPU core
-      }
-      else
-      {
-        CPU_SET(t, &cpuset); // Bind to specific CPU core
-      }
-      // Method2
-      // CPU_SET(t, &cpuset);  // Bind to specific CPU core
+      // if (t > 23)
+      // {
+      //   // int id = 48 + (t - 23);
+      //   CPU_SET(48 + (t - 24), &cpuset); // Bind to specific CPU core
+      // }
+      // else
+      // {
+      //   CPU_SET(t, &cpuset); // Bind to specific CPU core
+      // }
+      // c13
+      // if (t > 8)
+      // {
+      //   CPU_SET(32 + t, &cpuset); // Bind to specific CPU core
+      // }
+      // else
+      // {
+      //   CPU_SET(t, &cpuset); // Bind to specific CPU core
+      // }
+      // if (cpu_id > 28)
+      //   CPU_SET(1, &cpuset); // Bind to specific CPU core
+      // else
+      CPU_SET(cpu_id, &cpuset); // Bind to specific CPU core
       ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
       if (ret != 0)
       {
@@ -436,8 +449,8 @@ extern "C"
     // DEBUGGING
     std::sort(thread_results, thread_results + thread_num, [](const pair_tr &i, const pair_tr &j)
               { return i.second < j.second; });
-    // for (size_t i = 0; i < thread_num; i++)
-    // printf("CPU: %d, duration: %ld\n", thread_results[i].first, thread_results[i].second);
+    for (size_t i = 0; i < thread_num; i++)
+      printf("CPU: %d, duration: %ld\n", thread_results[i].first, thread_results[i].second);
 
     printf("Variance: %ld\n", thread_results[thread_num - 1].second - thread_results[0].second);
     for (auto &thread : threads)

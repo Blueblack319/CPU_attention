@@ -38,9 +38,11 @@
   51 =  1k * 0.05
 */
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   // Check if NUMA is available
-  if (numa_available() == -1) {
+  if (numa_available() == -1)
+  {
     std::cerr << "NUMA is not available on this system." << std::endl;
     return 1;
   }
@@ -68,23 +70,23 @@ int main(int argc, char *argv[]) {
   const int q_out_head_offset = batch_size * Dh;
   const int q_out_batch_offset = Dh;
 
-  if (is_key_gemv) {
+  if (is_key_gemv)
+  {
     key_gemv_eval(K, Dh, num_head, batch_size, iteration, kv_head_offset,
                   kv_batch_offset, q_out_head_offset, q_out_batch_offset,
                   logits_score_head_offset, logits_score_batch_offset,
                   thread_num);
-  } else {
-    // value_gemv_eval_half(K, Dh, num_head, batch_size, iteration,
-    // kv_iter_offset,
-    //                      kv_head_offset, kv_batch_offset,
-    //                      logits_score_iter_offset,
-    // logits_score_head_offset,
+  }
+  else
+  {
+    value_gemv_eval(K, Dh, num_head, batch_size, iteration, kv_head_offset,
+                    kv_batch_offset, logits_score_head_offset,
+                    logits_score_batch_offset, q_out_head_offset,
+                    q_out_batch_offset, thread_num);
+    // value_gemv_eval_half(K, Dh, num_head, batch_size, iteration, kv_head_offset,
+    //                      kv_batch_offset, logits_score_head_offset,
     //                      logits_score_batch_offset, q_out_head_offset,
     //                      q_out_batch_offset, thread_num);
-    value_gemv_eval_half(K, Dh, num_head, batch_size, iteration, kv_head_offset,
-                         kv_batch_offset, logits_score_head_offset,
-                         logits_score_batch_offset, q_out_head_offset,
-                         q_out_batch_offset, thread_num);
   }
 
   return 0;

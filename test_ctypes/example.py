@@ -9,7 +9,7 @@ import torch
 import argparse
 import os
 
-ITER = 15
+ITER = 10
 
 
 def aligned_array(size, dtype=np.float32, alignment=32):
@@ -101,10 +101,21 @@ def test_with_threading(
     is_key_gemv,
 ):
     def task_value_gemv():
+        # Elevate the process to the highest priority(real-time class)
+        sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+        try:
+            os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
+        except PermissionError:
+            print("Permission denied. Try running as root.")
+        
+        os.sched_setaffinity(0, {5})
         lib.prepare_value_gemv(
-            ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
-            ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
-            ctypes.cast(result_logits.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            # ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            # ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            # ctypes.cast(result_logits.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            values_keys.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+            logits_queries.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
+            result_logits.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
             ctypes.c_int(head_num),
             ctypes.c_int(batch_size),
             ctypes.c_int(K),
@@ -119,6 +130,14 @@ def test_with_threading(
         )
 
     def task_key_gemv():
+        # Elevate the process to the highest priority(real-time class)
+        sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+        try:
+            os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
+        except PermissionError:
+            print("Permission denied. Try running as root.")
+
+        os.sched_setaffinity(0, {5})
         lib.prepare_key_gemv(
             ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -138,10 +157,8 @@ def test_with_threading(
 
     if is_key_gemv:
         thread = threading.Thread(target=task_key_gemv)
-        # thread = multiprocessing.Process(target=task_key_gemv)
     else:
         thread = threading.Thread(target=task_value_gemv)
-        # thread = multiprocessing.Process(target=task_value_gemv)
     thread.start()
 
     time.sleep(1)
@@ -166,15 +183,21 @@ def test_with_threading(
     lib.clear_flags()
     thread.join()
 
+def aligned_array(shape, dtype, alignment=64):
+    """Create a memory-aligned numpy array."""
+    nbytes = np.prod(shape) * np.dtype(dtype).itemsize
+    buffer = np.empty(nbytes + alignment, dtype=np.uint8)
+    start_index = -buffer.ctypes.data % alignment
+    aligned_buffer = buffer[start_index:start_index + nbytes]
+    return np.ndarray(shape, dtype=dtype, buffer=aligned_buffer)
 
 def test_value_gemv(batch_size, K, thread_num):
     # Elevate the process to the highest priority(real-time class)
-    # SCHED_FIFO = 1
-    # sched_param = os.sched_param(sched_priority=99)
-    # try:
-    #     os.sched_setscheduler(0, SCHED_FIFO, sched_param)
-    # except PermissionError:
-    #     print("Permission denied. Try running as root.")
+    sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+    try:
+        os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
+    except PermissionError:
+        print("Permission denied. Try running as root.")
 
     # pid = os.getpid()
     # try:
@@ -182,17 +205,37 @@ def test_value_gemv(batch_size, K, thread_num):
     # except AttributeError:
     #     print("os.sched_setaffinity is not available on this platform.")
 
-    try:
-        os.nice(-20)
-    except PermissionError:
-        print("Permission denied. Try running as root.")
+    # try:
+    #     os.nice(-20)
+    # except PermissionError:
+    #     print("Permission denied. Try running as root.")
 
     head_num = 32
     Dh = 128
 
-    values = torch.rand(head_num * batch_size * K * Dh)
-    logits = torch.rand(head_num * batch_size * K)
-    result = torch.zeros(head_num * batch_size * Dh)
+    # Memory-aligned allocation using Torch
+    # values = torch.rand(head_num * batch_size * K * Dh, dtype=torch.float32)
+    # logits = torch.rand(head_num * batch_size * K, dtype=torch.float32)
+    # result = torch.zeros(head_num * batch_size * Dh, dtype=torch.float32)
+
+    # Check memory alignment (optional)
+    # assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
+    # assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+    # assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
+
+    # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
+    values = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+    logits = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+    result = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+
+    # # Fill values and logits with random values
+    values[:] = np.random.rand(*values.shape).astype(np.float32)
+    logits[:] = np.random.rand(*logits.shape).astype(np.float32)
+    
+    # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
+    assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
+    assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
+    assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
 
     kv_head_offset = batch_size * K * Dh
     kv_batch_offset = K * Dh
@@ -219,9 +262,25 @@ def test_value_gemv(batch_size, K, thread_num):
             out_logits_batch_offset,
             False,
         )
-        values = torch.rand(head_num * batch_size * K * Dh)
-        logits = torch.rand(head_num * batch_size * K)
-        result = torch.zeros(head_num * batch_size * Dh)
+        # values = torch.rand(head_num * batch_size * K * Dh, dtype=torch.float32)
+        # logits = torch.rand(head_num * batch_size * K, dtype=torch.float32)
+        # result = torch.zeros(head_num * batch_size * Dh, dtype=torch.float32)
+        # assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
+        # assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+        # assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
+        # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
+        values = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+        logits = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+        result = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+
+        # # Fill values and logits with random values
+        values[:] = np.random.rand(*values.shape).astype(np.float32)
+        logits[:] = np.random.rand(*logits.shape).astype(np.float32)
+        
+        # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
+        assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
+        assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
+        assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
 
 
 def test_key_gemv(batch_size, K, thread_num):
@@ -292,4 +351,5 @@ def main():
 
 
 if __name__ == "__main__":
+    os.sched_setaffinity(0, {3})
     main()
