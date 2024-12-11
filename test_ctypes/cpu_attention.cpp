@@ -194,12 +194,17 @@ extern "C"
       int const queries_batch_offset, int const logits_head_offset,
       int const logits_batch_offset, int const thread_id, int const num_threads,
       int const start_idx, int const end_idx, std::atomic<bool> *ready_flag,
-      std::atomic<bool> *finished_flag)
+      std::atomic<bool> *finished_flag, pair_tr *duration)
   {
+    struct timespec start, end;
+
     while (!(ready_flag->load(std::memory_order_acquire)))
     {
       // while (!(*ready_flag)) {
     }
+    clock_gettime(CLOCK_REALTIME, &start);
+    // clock_gettime(CLOCK_MONOTONIC, &start);
+
     // Multiply and Add
     for (int idx = start_idx; idx < end_idx; ++idx)
     {
@@ -325,10 +330,12 @@ extern "C"
     }
     // Mark this thread as finished
     finished_flag->store(true, std::memory_order_release);
-    while (ready_flag->load(std::memory_order_acquire))
-    {
-      // Wait until ready_flag is reset
-    }
+    clock_gettime(CLOCK_REALTIME, &end);
+    // clock_gettime(CLOCK_MONOTONIC, &end);
+    duration->first = thread_id;
+    // duration->second = start.tv_sec * 1e9 + start.tv_nsec;
+    // duration->second = (end.tv_nsec) / 1e3;
+    duration->second = ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
   }
 
   // Function to prepare the threads for Value GEMV
@@ -482,17 +489,20 @@ extern "C"
     // Init thread pool
     std::vector<std::thread> threads;
     int start_idx = 0, end_idx = 0;
+    int acc = 0;
     for (int t = 0; t < thread_num; ++t)
     {
       start_idx = end_idx;
       end_idx = t < work_remained ? start_idx + work_per_thread + 1
                                   : start_idx + work_per_thread;
-
+      int cpu_id = t + acc;
+      acc += 1;
+      // int cpu_id = t;
       threads.emplace_back(key_gemv_threaded, keys, queries, logits, head_num,
                            batch_size, K, Dh, keys_head_offset, keys_batch_offset,
                            queries_head_offset, queries_batch_offset,
                            logits_head_offset, logits_batch_offset, t, thread_num,
-                           start_idx, end_idx, &ready_flag, &finished_flags[t]);
+                           start_idx, end_idx, &ready_flag, &finished_flags[t], &thread_results[t]);
 
       // Get the native handle for the created thread
       pthread_t nativeHandle = threads.back().native_handle();
@@ -512,17 +522,28 @@ extern "C"
       cpu_set_t cpuset;
       CPU_ZERO(&cpuset);
       // Method1
-      if (t > 23)
-      {
-        // int id = 48 + (t - 23);
-        CPU_SET(48 + (t - 24), &cpuset); // Bind to specific CPU core
-      }
-      else
-      {
-        CPU_SET(t, &cpuset); // Bind to specific CPU core
-      }
-      // Method2
-      // CPU_SET(t, &cpuset);  // Bind to specific CPU core
+      // if (t > 23)
+      // {
+      //   // int id = 48 + (t - 23);
+      //   CPU_SET(48 + (t - 24), &cpuset); // Bind to specific CPU core
+      // }
+      // else
+      // {
+      //   CPU_SET(t, &cpuset); // Bind to specific CPU core
+      // }
+      // c13
+      // if (t > 8)
+      // {
+      //   CPU_SET(32 + t, &cpuset); // Bind to specific CPU core
+      // }
+      // else
+      // {
+      //   CPU_SET(t, &cpuset); // Bind to specific CPU core
+      // }
+      // if (cpu_id > 28)
+      //   CPU_SET(1, &cpuset); // Bind to specific CPU core
+      // else
+      CPU_SET(cpu_id, &cpuset); // Bind to specific CPU core
       ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
       if (ret != 0)
       {
@@ -545,6 +566,7 @@ extern "C"
         {
           if (finished_flags[i].load(std::memory_order_acquire))
           {
+            //   clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
             thread_finished[i] = true;
           }
           else
@@ -554,7 +576,16 @@ extern "C"
         }
       }
     }
+    // clock_gettime(CLOCK_REALTIME, &_end);
+    clock_gettime(CLOCK_MONOTONIC, &_end);
     done_flag.store(true, std::memory_order_release);
+    // DEBUGGING
+    std::sort(thread_results, thread_results + thread_num, [](const pair_tr &i, const pair_tr &j)
+              { return i.second < j.second; });
+    for (size_t i = 0; i < thread_num; i++)
+      printf("CPU: %d, duration: %ld\n", thread_results[i].first, thread_results[i].second);
+
+    printf("Variance: %ld\n", thread_results[thread_num - 1].second - thread_results[0].second);
     for (auto &thread : threads)
       thread.join();
   }

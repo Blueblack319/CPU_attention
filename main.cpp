@@ -54,17 +54,14 @@ int main(int argc, char *argv[])
 
   size_t Dh = 128, iteration = 51;
   size_t num_head = is_key_gemv ? 4 : 32;
-  // [ ] Debugging
   if (is_key_gemv)
     printf("Key GEMV\n");
   else
     printf("Value GEMV\n");
   printf("BS: %d, K: %d, Dh: %d, num_head: %d, thread_num: %d\n", batch_size, K,
          Dh, num_head, thread_num);
-  // const int kv_iter_offset = iteration * batch_size * K * Dh;
   const int kv_head_offset = batch_size * K * Dh;
   const int kv_batch_offset = K * Dh;
-  // const int logits_score_iter_offset = iteration * batch_size * K;
   const int logits_score_head_offset = batch_size * K;
   const int logits_score_batch_offset = K;
   const int q_out_head_offset = batch_size * Dh;

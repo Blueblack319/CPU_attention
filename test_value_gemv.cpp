@@ -13,13 +13,15 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
                      int const logits_batch_offset,
                      int const result_head_offset,
                      int const result_batch_offset,
-                     int const num_threads) {  // Total work = 256 / num_threads
+                     int const num_threads)
+{ // Total work = 256 / num_threads
   // Allocate memory
   float *values[ITER];
   float *logits[ITER];
   float *result[ITER];
 
-  for (size_t i = 0; i < ITER; ++i) {
+  for (size_t i = 0; i < ITER; ++i)
+  {
     values[i] = static_cast<float *>(
         aligned_alloc(64, num_head * batch_size * K * Dh * sizeof(float)));
     logits[i] = static_cast<float *>(
@@ -43,14 +45,18 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     for (size_t i = 0; i < num_head; ++i)
       for (size_t j = 0; j < batch_size; ++j)
         for (size_t k = 0; k < K; ++k)
-          for (size_t l = 0; l < Dh; ++l) {
-            if (ii == 0) {
+          for (size_t l = 0; l < Dh; ++l)
+          {
+            if (ii == 0)
+            {
               float rand_val = dist(gen);
               values[ii][i * values_head_offset + j * values_batch_offset +
                          k * Dh + l] = rand_val;
               values_trusted[i * values_head_offset + j * values_batch_offset +
                              k * Dh + l] = rand_val;
-            } else {
+            }
+            else
+            {
               values[ii][i * values_head_offset + j * values_batch_offset +
                          k * Dh + l] =
                   values_trusted[i * values_head_offset +
@@ -61,24 +67,31 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   for (size_t ii = 0; ii < iteration; ++ii)
     for (size_t i = 0; i < num_head; ++i)
       for (size_t j = 0; j < batch_size; ++j)
-        for (size_t k = 0; k < K; ++k) {
-          if (ii == 0) {
+        for (size_t k = 0; k < K; ++k)
+        {
+          if (ii == 0)
+          {
             float rand_val = dist(gen);
             logits[ii][i * logits_head_offset + j * logits_batch_offset + k] =
                 rand_val;
             logits_trusted[i * logits_head_offset + j * logits_batch_offset +
                            k] = rand_val;
-          } else {
+          }
+          else
+          {
             logits[ii][i * logits_head_offset + j * logits_batch_offset + k] =
                 logits_trusted[i * logits_head_offset +
                                j * logits_batch_offset + k];
           }
         }
 
-  for (size_t ii = 0; ii < iteration; ++ii) {
-    for (size_t i = 0; i < num_head * batch_size * Dh; ++i) {
+  for (size_t ii = 0; ii < iteration; ++ii)
+  {
+    for (size_t i = 0; i < num_head * batch_size * Dh; ++i)
+    {
       result[ii][i] = 0.f;
-      if (ii == 0) result_trusted[i] = 0.f;
+      if (ii == 0)
+        result_trusted[i] = 0.f;
     }
   }
 
@@ -111,7 +124,8 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   // Create array of timespecs to store when each thread finishes
   struct timespec thread_finish_times[num_threads];
   bool thread_finished[num_threads];
-  for (int i = 0; i < num_threads; ++i) thread_finished[i] = false;
+  for (int i = 0; i < num_threads; ++i)
+    thread_finished[i] = false;
 
   // Each thread works on its slice
   int const total_work = num_head * batch_size;
@@ -120,11 +134,20 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   int const min_priority = sched_get_priority_min(SCHED_FIFO);
   int const max_priority = sched_get_priority_max(SCHED_FIFO);
 
-  int priority = max_priority;  // Base priority for all threads
+  int priority = max_priority; // Base priority for all threads
+
+  // DEBUGGING
+  printf("Total Work: %d\n", total_work);
+  printf("Work/Thread: %d\n", work_per_thread);
+
+  // Check for the variance between threads
+  double end_times[num_threads];
 
   // Init thread pool
-  std::vector<std::thread> threads;
-  for (int t = 0; t < num_threads; ++t) {
+  std::vector<std::thread>
+      threads;
+  for (int t = 0; t < num_threads; ++t)
+  {
     const int start_idx = t * work_per_thread;
     const int end_idx = std::min(start_idx + work_per_thread, total_work);
     threads.emplace_back(
@@ -132,18 +155,19 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
         Dh, values_head_offset, values_batch_offset, logits_head_offset,
         logits_batch_offset, result_head_offset, result_batch_offset, t,
         num_threads, start_idx, end_idx, &ready_flag, &finished_flags[t],
-        &stop_flag, &iter_num);
+        &stop_flag, &iter_num, &end_times[t]);
 
     // // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
 
     // Define the scheduling parameters
     struct sched_param param;
-    param.sched_priority = priority;  // Set the same priorities for each thread
+    param.sched_priority = priority; // Set the same priorities for each thread
 
     // Set the scheduling policy to SCHED_FIFO
     int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
-    if (ret != 0) {
+    if (ret != 0)
+    {
       std::cerr << "Failed to set scheduling policy for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
@@ -151,28 +175,33 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     // Method1
-    if (t > 23) {
+    if (t > 23)
+    {
       // int id = 48 + (t - 23);
-      CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
-    } else {
-      CPU_SET(t, &cpuset);  // Bind to specific CPU core
+      CPU_SET(48 + (t - 23), &cpuset); // Bind to specific CPU core
+    }
+    else
+    {
+      CPU_SET(t, &cpuset); // Bind to specific CPU core
     }
     // Method2
     // CPU_SET(t, &cpuset);  // Bind to specific CPU core
 
     ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
+    if (ret != 0)
+    {
       std::cerr << "Failed to set CPU affinity for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
   }
 
-  usleep(100000);  // Sleep for 1s to allow threads to start
+  usleep(100000); // Sleep for 1s to allow threads to start
 
   // Repeat to measure latency of the kernel
   // double acc_time_sec;
   // double cur_time_sec;
-  for (int ii = 0; ii < iteration; ++ii) {
+  for (int ii = 0; ii < iteration; ++ii)
+  {
     // Flush the current data in Cache
     flush_cache();
 
@@ -184,14 +213,20 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
 
     // Busy wait until all threads are finished
     bool all_threads_finished = false;
-    while (!all_threads_finished) {
+    while (!all_threads_finished)
+    {
       all_threads_finished = true;
-      for (int i = 0; i < num_threads; ++i) {
-        if (!thread_finished[i]) {
-          if (finished_flags[i].load(std::memory_order_acquire)) {
+      for (int i = 0; i < num_threads; ++i)
+      {
+        if (!thread_finished[i])
+        {
+          if (finished_flags[i].load(std::memory_order_acquire))
+          {
             clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
             thread_finished[i] = true;
-          } else {
+          }
+          else
+          {
             all_threads_finished = false;
           }
         }
@@ -203,7 +238,8 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     // Reset flags
     ready_flag.store(false, std::memory_order_release);
     all_threads_finished = false;
-    for (int i = 0; i < num_threads; ++i) {
+    for (int i = 0; i < num_threads; ++i)
+    {
       thread_finished[i] = false;
       finished_flags[i].store(false, std::memory_order_release);
     }
@@ -217,15 +253,17 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     acc_time_sec += cur_time_sec;
 
     usleep(10);
+    for (int t = 0; t < num_threads; ++t)
+      printf("CPU %d: %f\n", t, end_times[t]);
+
+    std::sort(end_times, end_times + num_threads);
+    printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
 
     // Calculate MSE and MAE
     // float mse =
-    //     calculate_mse(result[ii], result_trusted, num_head * batch_size *
-    //     Dh);
+    //     calculate_mse(result[ii], result_trusted, num_head * batch_size * Dh);
     // float mae =
-    //     calculate_mae(result[ii], result_trusted, num_head * batch_size *
-    //     Dh);
-    // // [x] Debugging for each iteration
+    //     calculate_mae(result[ii], result_trusted, num_head * batch_size * Dh);
     // printf("Current elapsed time: %f\n", cur_time_sec);
     // std::cout << "Mean Squared Error: " << mse << std::endl;
     // std::cout << "Maximum Absolute Error: " << mae << std::endl;
@@ -238,7 +276,8 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   // Stop the thread pool
   stop_flag.store(true, std::memory_order_release);
 
-  for (auto &thread : threads) thread.join();
+  for (auto &thread : threads)
+    thread.join();
 
   // Calculate FLOPs and GFLOPs
   double flops = 2.0 * Dh * K * num_head * batch_size;
@@ -257,7 +296,8 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   printf("\n\n");
 
   // Free the allocated memory
-  for (int i = 0; i < ITER; ++i) {
+  for (int i = 0; i < ITER; ++i)
+  {
     free(values[i]);
     free(logits[i]);
     free(result[i]);
@@ -273,13 +313,15 @@ void value_gemv_eval_half(
     const int values_head_offset, const int values_batch_offset,
     int const logits_head_offset, int const logits_batch_offset,
     int const result_head_offset, int const result_batch_offset,
-    int const num_threads) {  // Total work = 256 / num_threads
+    int const num_threads)
+{ // Total work = 256 / num_threads
   // Allocate memory
   half *values[ITER];
   half *logits[ITER];
   half *result[ITER];
 
-  for (size_t i = 0; i < ITER; ++i) {
+  for (size_t i = 0; i < ITER; ++i)
+  {
     values[i] = static_cast<half *>(
         aligned_alloc(64, num_head * batch_size * K * Dh * sizeof(half)));
     logits[i] = static_cast<half *>(
@@ -303,14 +345,18 @@ void value_gemv_eval_half(
     for (size_t i = 0; i < num_head; ++i)
       for (size_t j = 0; j < batch_size; ++j)
         for (size_t k = 0; k < K; ++k)
-          for (size_t l = 0; l < Dh; ++l) {
-            if (ii == 0) {
+          for (size_t l = 0; l < Dh; ++l)
+          {
+            if (ii == 0)
+            {
               float rand_val = dist(gen);
               values[ii][i * values_head_offset + j * values_batch_offset +
                          k * Dh + l] = __half2float(rand_val);
               values_trusted[i * values_head_offset + j * values_batch_offset +
                              k * Dh + l] = rand_val;
-            } else {
+            }
+            else
+            {
               values[ii][i * values_head_offset + j * values_batch_offset +
                          k * Dh + l] =
                   values[0][i * values_head_offset + j * values_batch_offset +
@@ -321,23 +367,30 @@ void value_gemv_eval_half(
   for (size_t ii = 0; ii < iteration; ++ii)
     for (size_t i = 0; i < num_head; ++i)
       for (size_t j = 0; j < batch_size; ++j)
-        for (size_t k = 0; k < K; ++k) {
-          if (ii == 0) {
+        for (size_t k = 0; k < K; ++k)
+        {
+          if (ii == 0)
+          {
             float rand_val = dist(gen);
             logits[ii][i * logits_head_offset + j * logits_batch_offset + k] =
                 __half2float(rand_val);
             logits_trusted[i * logits_head_offset + j * logits_batch_offset +
                            k] = rand_val;
-          } else {
+          }
+          else
+          {
             logits[ii][i * logits_head_offset + j * logits_batch_offset + k] =
                 logits[0][i * logits_head_offset + j * logits_batch_offset + k];
           }
         }
 
-  for (size_t ii = 0; ii < iteration; ++ii) {
-    for (size_t i = 0; i < num_head * batch_size * Dh; ++i) {
+  for (size_t ii = 0; ii < iteration; ++ii)
+  {
+    for (size_t i = 0; i < num_head * batch_size * Dh; ++i)
+    {
       result[ii][i] = 0.f;
-      if (ii == 0) result_trusted[i] = 0.f;
+      if (ii == 0)
+        result_trusted[i] = 0.f;
     }
   }
 
@@ -370,7 +423,8 @@ void value_gemv_eval_half(
   // Create array of timespecs to store when each thread finishes
   struct timespec thread_finish_times[num_threads];
   bool thread_finished[num_threads];
-  for (int i = 0; i < num_threads; ++i) thread_finished[i] = false;
+  for (int i = 0; i < num_threads; ++i)
+    thread_finished[i] = false;
 
   // Each thread works on its slice
   int const total_work = num_head * batch_size;
@@ -379,11 +433,16 @@ void value_gemv_eval_half(
   int const min_priority = sched_get_priority_min(SCHED_FIFO);
   int const max_priority = sched_get_priority_max(SCHED_FIFO);
 
-  int priority = max_priority;  // Base priority for all threads
+  int priority = max_priority; // Base priority for all threads
+
+  // DEBUGGING
+  printf("Total Work: %d\n", total_work);
+  printf("Work/Thread: %d\n", work_per_thread);
 
   // Init thread pool
   std::vector<std::thread> threads;
-  for (int t = 0; t < num_threads; ++t) {
+  for (int t = 0; t < num_threads; ++t)
+  {
     const int start_idx = t * work_per_thread;
     const int end_idx = std::min(start_idx + work_per_thread, total_work);
     // threads.emplace_back(
@@ -404,11 +463,12 @@ void value_gemv_eval_half(
 
     // Define the scheduling parameters
     struct sched_param param;
-    param.sched_priority = priority;  // Set the same priorities for each thread
+    param.sched_priority = priority; // Set the same priorities for each thread
 
     // Set the scheduling policy to SCHED_FIFO
     int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
-    if (ret != 0) {
+    if (ret != 0)
+    {
       std::cerr << "Failed to set scheduling policy for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
@@ -416,25 +476,30 @@ void value_gemv_eval_half(
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     // Method1
-    if (t > 23) {
+    if (t > 23)
+    {
       // int id = 48 + (t - 23);
-      CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
-    } else {
-      CPU_SET(t, &cpuset);  // Bind to specific CPU core
+      CPU_SET(48 + (t - 23), &cpuset); // Bind to specific CPU core
+    }
+    else
+    {
+      CPU_SET(t, &cpuset); // Bind to specific CPU core
     }
     // Method2
     // CPU_SET(t, &cpuset);  // Bind to specific CPU core
     ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
+    if (ret != 0)
+    {
       std::cerr << "Failed to set CPU affinity for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
   }
 
-  usleep(100000);  // Sleep for 1s to allow threads to start
+  usleep(100000); // Sleep for 1s to allow threads to start
 
   // Repeat to measure latency of the kernel
-  for (int ii = 0; ii < iteration; ++ii) {
+  for (int ii = 0; ii < iteration; ++ii)
+  {
     // Flush the current data in Cache
     flush_cache();
 
@@ -446,14 +511,20 @@ void value_gemv_eval_half(
 
     // Busy wait until all threads are finished
     bool all_threads_finished = false;
-    while (!all_threads_finished) {
+    while (!all_threads_finished)
+    {
       all_threads_finished = true;
-      for (int i = 0; i < num_threads; ++i) {
-        if (!thread_finished[i]) {
-          if (finished_flags[i].load(std::memory_order_acquire)) {
+      for (int i = 0; i < num_threads; ++i)
+      {
+        if (!thread_finished[i])
+        {
+          if (finished_flags[i].load(std::memory_order_acquire))
+          {
             clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
             thread_finished[i] = true;
-          } else {
+          }
+          else
+          {
             all_threads_finished = false;
           }
         }
@@ -465,7 +536,8 @@ void value_gemv_eval_half(
     // Reset flags
     ready_flag.store(false, std::memory_order_release);
     all_threads_finished = false;
-    for (int i = 0; i < num_threads; ++i) {
+    for (int i = 0; i < num_threads; ++i)
+    {
       thread_finished[i] = false;
       finished_flags[i].store(false, std::memory_order_release);
     }
@@ -503,7 +575,8 @@ void value_gemv_eval_half(
   // Stop the thread pool
   stop_flag.store(true, std::memory_order_release);
 
-  for (auto &thread : threads) thread.join();
+  for (auto &thread : threads)
+    thread.join();
 
   // Calculate FLOPs and GFLOPs
   double flops = 2.0 * Dh * K * num_head * batch_size;
@@ -543,7 +616,8 @@ void value_gemv_eval_half(
   // std::cout << "Maximum Absolute Error: " << mae << std::endl;
 
   // Free the allocated memory
-  for (int i = 0; i < ITER; ++i) {
+  for (int i = 0; i < ITER; ++i)
+  {
     free(values[i]);
     free(logits[i]);
     free(result[i]);
