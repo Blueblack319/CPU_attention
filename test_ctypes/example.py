@@ -343,7 +343,7 @@ def main():
     args = parser.parse_args()
 
     if args.key_gemv:
-        check_power_of_2(args.K)
+        # check_power_of_2(args.K)
         test_key_gemv(args.batch_size, args.K, args.thread_num)
     else:
         test_value_gemv(args.batch_size, args.K, args.thread_num)
