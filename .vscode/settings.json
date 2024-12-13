@@ -68,7 +68,12 @@
         "iomanip": "cpp",
         "typeindex": "cpp",
         "valarray": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "charconv": "cpp",
+        "format": "cpp",
+        "numbers": "cpp",
+        "semaphore": "cpp",
+        "span": "cpp"
     },
     "cmake.sourceDirectory": "/home2/jaehoon/CPU_attention/integration"
 }

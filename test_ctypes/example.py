@@ -6,6 +6,7 @@ import time
 import ctypes
 import numpy as np
 import torch
+import torch.nn.functional as F
 import argparse
 import os
 
@@ -283,8 +284,24 @@ def test_value_gemv(batch_size, K, thread_num):
         assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
 
 
+def _attention_weights(q, k, mask, b, src_s, n_head):
+    # shape: (b * n_head, 1, s)
+    attn_weights = torch.bmm(q, k)
+    # # shape: (b, 1, 1, s)
+    # if mask is not None:
+    #     mask = mask.view(b, 1, 1, src_s)
+    # # shape: (b * n_head, 1, s)
+    # attn_weights = attn_weights.view(b, n_head, 1, src_s)
+    # if mask is not None:
+    #     attn_weights = torch.where(mask, attn_weights, -1e4)
+    
+    # attn_weights = attn_weights.view(b * n_head, 1, src_s)
+    # attn_weights = F.softmax(attn_weights, dim=2)
+
+    return attn_weights
+
 def test_key_gemv(batch_size, K, thread_num):
-    head_num = 4
+    head_num = 32
     Dh = 128
 
     kv_head_offset = batch_size * K * Dh
@@ -294,9 +311,14 @@ def test_key_gemv(batch_size, K, thread_num):
     logits_head_offset = batch_size * K
     logits_batch_offset = K
 
-    keys = torch.rand(head_num * batch_size * K * Dh)
-    queries = torch.rand(head_num * batch_size * Dh)
-    logits = torch.zeros(head_num * batch_size * K)
+    keys = torch.rand(head_num * batch_size, K, Dh)
+    queries = torch.rand(head_num * batch_size, 1, Dh)
+    logits = torch.zeros(head_num, batch_size, K)
+    # keys = torch.rand(head_num * batch_size, K, Dh, dtype=torch.float16)
+    # queries = torch.rand(head_num * batch_size, 1, Dh, dtype=torch.float16)
+    # logits = torch.zeros(head_num, batch_size, K, dtype=torch.float16)
+    # print(f"queries shape: {queries.shape}")
+    # print(f"keys shape: {keys.shape}")
 
     for _ in range(ITER):
         test_with_threading(
@@ -316,9 +338,20 @@ def test_key_gemv(batch_size, K, thread_num):
             logits_batch_offset,
             True,
         )
-        keys = torch.rand(head_num * batch_size * K * Dh)
-        queries = torch.rand(head_num * batch_size * Dh)
-        logits = torch.zeros(head_num * batch_size * K)
+        keys = keys.transpose(1, 2)
+        attn_weights = _attention_weights(queries, keys, None, batch_size, K, head_num)
+        attn_weights = attn_weights.reshape(head_num, batch_size, K)
+        attn_weights_max, _ = torch.max(attn_weights, dim=2, keepdim=True)
+        logits_max, _ = torch.max(logits, dim=2, keepdim=True)
+        # DEBUG
+        print(f"logits: {logits[0][0]}")
+        print(f"attn_weights: {attn_weights[0][0]}")
+        keys = torch.rand(head_num * batch_size, K, Dh)
+        queries = torch.rand(head_num * batch_size, 1, Dh)
+        logits = torch.zeros(head_num, batch_size, K)
+        # keys = torch.rand(head_num * batch_size, K, Dh, dtype=torch.float16)
+        # queries = torch.rand(head_num * batch_size, 1, Dh, dtype=torch.float16)
+        # logits = torch.zeros(head_num, batch_size, K, dtype=torch.float16)
 
 
 def check_power_of_2(value):

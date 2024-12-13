@@ -1289,7 +1289,8 @@ void key_gemv_threaded(
   keys = keys_;
   queries = queries_;
   logits = logits_;
-  const int last_case = K % num_threads;
+  const int last_case = K % 16;
+  printf("lastcase %d", last_case);
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
     // while (!(*ready_flag)) {
@@ -1303,7 +1304,7 @@ void key_gemv_threaded(
     int j = idx % batch_size;
 
     for (int k = 0; k < K; k += 16) {
-      if (k + 16 >= K) {
+      if (k + 16 > K) {
         switch (last_case) {
           case 1:
             gemv_1(K, Dh, i, j, queries_head_offset, queries_batch_offset,
@@ -1645,7 +1646,7 @@ void prepare_value_gemv(float *values, float *logits, float *result,
   for (auto &thread : threads) thread.join();
 }
 
-// [ ] Function to prepare the threads for Value GEMV
+// Function to prepare the threads for Key GEMV
 void prepare_key_gemv(float *keys, float *queries, float *logits,
                       int const head_num, int const batch_size, int const K,
                       int const Dh, int const keys_head_offset,
