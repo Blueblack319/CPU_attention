@@ -66,10 +66,15 @@ int main(int argc, char *argv[]) {
   const int q_out_batch_offset = Dh;
 
   if (is_key_gemv) {
-    key_gemv_eval<__half>(K, Dh, num_head, batch_size, iteration,
-                          kv_head_offset, kv_batch_offset, q_out_head_offset,
-                          q_out_batch_offset, logits_score_head_offset,
-                          logits_score_batch_offset, thread_num);
+    key_gemv_eval<std::uint16_t>(
+        K, Dh, num_head, batch_size, iteration, kv_head_offset, kv_batch_offset,
+        q_out_head_offset, q_out_batch_offset, logits_score_head_offset,
+        logits_score_batch_offset, thread_num);
+    // key_gemv_eval<float>(K, Dh, num_head, batch_size, iteration,
+    // kv_head_offset,
+    //                      kv_batch_offset, q_out_head_offset,
+    //                      q_out_batch_offset, logits_score_head_offset,
+    //                      logits_score_batch_offset, thread_num);
   } else {
     // value_gemv_eval(K, Dh, num_head, batch_size, iteration, kv_head_offset,
     //                 kv_batch_offset, logits_score_head_offset,

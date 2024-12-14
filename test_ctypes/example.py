@@ -71,6 +71,24 @@ lib.prepare_key_gemv.argtypes = [
     # ctypes.POINTER(ctypes.c_float) # done
 ]
 lib.prepare_key_gemv.restype = None
+lib.prepare_key_gemv_half.argtypes = [
+    ctypes.POINTER(ctypes.c_uint16),  # keys
+    ctypes.POINTER(ctypes.c_uint16),  # queries
+    ctypes.POINTER(ctypes.c_uint16),  # logits
+    ctypes.c_int,  # head_num
+    ctypes.c_int,  # batch_size
+    ctypes.c_int,  # K
+    ctypes.c_int,  # Dh
+    ctypes.c_int,  # values_head_offset
+    ctypes.c_int,  # values_batch_offset
+    ctypes.c_int,  # logits_head_offset
+    ctypes.c_int,  # logits_batch_offset
+    ctypes.c_int,  # result_head_offset
+    ctypes.c_int,  # result_batch_offset
+    ctypes.c_int,  # num_threads
+    # ctypes.POINTER(ctypes.c_float) # done
+]
+lib.prepare_key_gemv_half.restype = None
 lib.set_ready_flag.argtypes = []
 lib.set_ready_flag.restype = None
 lib.is_finished.argtypes = []
@@ -101,6 +119,7 @@ def test_with_threading(
     out_logits_batch_offset,
     is_key_gemv,
 ):
+    # Tasks for each thread
     def task_value_gemv():
         # Elevate the process to the highest priority(real-time class)
         sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
@@ -156,11 +175,46 @@ def test_with_threading(
             ctypes.c_int(thread_num),
         )
 
+    def task_key_gemv_half():
+        # Elevate the process to the highest priority(real-time class)
+        sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+        try:
+            os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
+        except PermissionError:
+            print("Permission denied. Try running as root.")
+
+        os.sched_setaffinity(0, {5})
+        lib.prepare_key_gemv_half(
+            ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
+            ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
+            ctypes.cast(result_logits.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
+            ctypes.c_int(head_num),
+            ctypes.c_int(batch_size),
+            ctypes.c_int(K),
+            ctypes.c_int(Dh),
+            ctypes.c_int(kv_head_offset),
+            ctypes.c_int(kv_batch_offset),
+            ctypes.c_int(logits_queries_head_offset),
+            ctypes.c_int(logits_queries_batch_offset),
+            ctypes.c_int(out_logits_head_offset),
+            ctypes.c_int(out_logits_batch_offset),
+            ctypes.c_int(thread_num),
+        )
+    ######
+
+    # Create and run a thread
     if is_key_gemv:
-        thread = threading.Thread(target=task_key_gemv)
+        if values_keys.dtype == torch.float:
+            thread = threading.Thread(target=task_key_gemv)
+        else:
+            thread = threading.Thread(target=task_key_gemv_half)
     else:
-        thread = threading.Thread(target=task_value_gemv)
+        if values_keys.dtype == torch.float:
+            thread = threading.Thread(target=task_value_gemv)
+        # else:
+        #     thread = threading.Thread(target=task_value_gemv_half)
     thread.start()
+    ######
 
     time.sleep(1)
     # dummy = 0
@@ -300,7 +354,7 @@ def _attention_weights(q, k, mask, b, src_s, n_head):
 
     return attn_weights
 
-def test_key_gemv(batch_size, K, thread_num):
+def test_key_gemv(batch_size, K, thread_num, dtype=torch.float16):
     head_num = 32
     Dh = 128
 
@@ -311,12 +365,9 @@ def test_key_gemv(batch_size, K, thread_num):
     logits_head_offset = batch_size * K
     logits_batch_offset = K
 
-    keys = torch.rand(head_num * batch_size, K, Dh)
-    queries = torch.rand(head_num * batch_size, 1, Dh)
-    logits = torch.zeros(head_num, batch_size, K)
-    # keys = torch.rand(head_num * batch_size, K, Dh, dtype=torch.float16)
-    # queries = torch.rand(head_num * batch_size, 1, Dh, dtype=torch.float16)
-    # logits = torch.zeros(head_num, batch_size, K, dtype=torch.float16)
+    keys = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
+    queries = torch.rand(head_num * batch_size, 1, Dh, dtype=dtype)
+    logits = torch.zeros(head_num, batch_size, K, dtype=dtype)
     # print(f"queries shape: {queries.shape}")
     # print(f"keys shape: {keys.shape}")
 
@@ -339,6 +390,8 @@ def test_key_gemv(batch_size, K, thread_num):
             True,
         )
         keys = keys.transpose(1, 2)
+        queries = queries.to('cuda')
+        keys = keys.to('cuda')
         attn_weights = _attention_weights(queries, keys, None, batch_size, K, head_num)
         attn_weights = attn_weights.reshape(head_num, batch_size, K)
         attn_weights_max, _ = torch.max(attn_weights, dim=2, keepdim=True)
@@ -346,12 +399,9 @@ def test_key_gemv(batch_size, K, thread_num):
         # DEBUG
         print(f"logits: {logits[0][0]}")
         print(f"attn_weights: {attn_weights[0][0]}")
-        keys = torch.rand(head_num * batch_size, K, Dh)
-        queries = torch.rand(head_num * batch_size, 1, Dh)
-        logits = torch.zeros(head_num, batch_size, K)
-        # keys = torch.rand(head_num * batch_size, K, Dh, dtype=torch.float16)
-        # queries = torch.rand(head_num * batch_size, 1, Dh, dtype=torch.float16)
-        # logits = torch.zeros(head_num, batch_size, K, dtype=torch.float16)
+        keys = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
+        queries = torch.rand(head_num * batch_size, 1, Dh, dtype=dtype)
+        logits = torch.zeros(head_num, batch_size, K, dtype=dtype)
 
 
 def check_power_of_2(value):
@@ -377,7 +427,7 @@ def main():
 
     if args.key_gemv:
         # check_power_of_2(args.K)
-        test_key_gemv(args.batch_size, args.K, args.thread_num)
+        test_key_gemv(args.batch_size, args.K, args.thread_num, dtype=torch.float16)
     else:
         test_value_gemv(args.batch_size, args.K, args.thread_num)
 
