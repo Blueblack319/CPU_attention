@@ -3226,7 +3226,7 @@ void softmax_trusted_threads(float *qk, const float *max_values,
       ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
 }
 
-// [ ] Function to prepare the threads for Softmax
+// [x] Function to prepare the threads for Softmax
 void prepare_softmax(float *qk, const float *max_values, const size_t seq_len,
                      const size_t head_num, const size_t batch_size,
                      const size_t head_offset, const int batch_offset,

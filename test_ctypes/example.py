@@ -514,7 +514,7 @@ def test_softmax(batch_size, K, thread_num, dtype=torch.float):
     qk = torch.rand(head_num, batch_size, seq_len, dtype=dtype)
 
     # for _ in range(ITER):
-    # [ ] Produce the answer by Pytorch
+    # [x] Produce the answer by Pytorch
     start_torch = time.perf_counter_ns()
     logits_from_torch = F.softmax(qk, dim=-1)
     end_torch = time.perf_counter_ns()
@@ -523,10 +523,10 @@ def test_softmax(batch_size, K, thread_num, dtype=torch.float):
     duration = (end_torch - start_torch) / 1e3
     print(f"Took {duration} microseconds")
 
-    # [ ] Calculate max before Softmax
+    # [x] Calculate max before Softmax
     max_values, max_indices = torch.max(qk, dim=-1, keepdim=True)
 
-    # [ ] Run CPU Softmax
+    # [x] Run CPU Softmax
     test_softmax_threads(
         qk,
         max_values,
@@ -538,7 +538,14 @@ def test_softmax(batch_size, K, thread_num, dtype=torch.float):
         thread_num,
     )
 
-    # [ ] Calculate the MSE and MAE
+    # [x] Calculate the MSE and MAE
+    # Calculate MSE
+    mse = torch.mean((logits_from_torch - qk) ** 2)
+    print("Mean Squared Error (MSE):", mse.item())
+
+    # Calculate MAE
+    mae = torch.mean(torch.abs(logits_from_torch - qk))
+    print("Mean Absolute Error (MAE):", mae.item())
 
 
 ###############################################
