@@ -14,6 +14,7 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
                      int const result_head_offset,
                      int const result_batch_offset,
                      int const num_threads) {  // Total work = 256 / num_threads
+  //////////////////////////////////////////////////////////////////////////////////
   // Allocate memory
   float *values[ITER];
   float *logits[ITER];
@@ -83,6 +84,7 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   }
 
   double total_time_sec, total_time_sec_trusted;
+  //////////////////////////////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////////////////////////////
   // Run attention output with OpenBLAS
@@ -264,7 +266,7 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
             << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;
   std::cout << "Total Bytes: " << total_bytes << std::endl;
-  std::cout << "Throughtput(GB/s): " << throughput << std::endl;
+  std::cout << "Throughput(GB/s): " << throughput << std::endl;
   printf("\n\n");
 
   // Free the allocated memory
@@ -537,7 +539,7 @@ void value_gemv_eval_half(
             << std::endl;
   // std::cout << "GFLOPs: " << gflops << std::endl;
   // std::cout << "Total Bytes: " << total_bytes << std::endl;
-  std::cout << "Throughtput(GB/s): " << throughput << std::endl;
+  std::cout << "Throughput(GB/s): " << throughput << std::endl;
   printf("\n\n");
 
   // std::cout <<

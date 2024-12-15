@@ -281,7 +281,7 @@ void key_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
             << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;
   std::cout << "Total Bytes: " << total_bytes << std::endl;
-  std::cout << "Throughtput(GB/s): " << throughput << std::endl;
+  std::cout << "Throughput(GB/s): " << throughput << std::endl;
   printf("\n\n");
 
   // DEBUGGING
