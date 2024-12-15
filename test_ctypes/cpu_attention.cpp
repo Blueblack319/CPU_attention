@@ -1,5 +1,6 @@
 #include <cuda_fp16.h>
 #include <immintrin.h>
+#include <math.h>
 #include <sched.h>
 #include <string.h>
 #include <unistd.h>
@@ -2893,10 +2894,7 @@ void key_gemv_threaded_half(
   // Mark this thread as finished
   finished_flag->store(true, std::memory_order_release);
   clock_gettime(CLOCK_REALTIME, &end);
-  // clock_gettime(CLOCK_MONOTONIC, &end);
   duration->first = thread_id;
-  // duration->second = start.tv_sec * 1e9 + start.tv_nsec;
-  // duration->second = (end.tv_nsec) / 1e3;
   duration->second =
       ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
 }
@@ -3189,23 +3187,141 @@ void prepare_key_gemv_half(
   for (auto &thread : threads) thread.join();
 }
 
+///////////////////////////////////////////////////////////////////
+void softmax_trusted_threads(float *qk, const float *max_values,
+                             const size_t seq_len, const size_t head_num,
+                             const size_t batch_size, const size_t head_offset,
+                             const size_t batch_offset, const int thread_idx,
+                             const size_t thread_num, const int start_idx,
+                             const int end_idx, std::atomic<bool> *ready_flag,
+                             std::atomic<bool> *finished_flag,
+                             pair_tr *duration) {
+  struct timespec end, start;
+  while (!(ready_flag->load(std::memory_order_acquire))) {
+    // Busy-wait (spinlock) until the main thread signals ready
+  }
+  clock_gettime(CLOCK_REALTIME, &start);
+  for (int idx = start_idx; idx < end_idx; ++idx) {
+    const int head_idx = idx / batch_size;
+    const int batch_idx = idx % batch_size;
+
+    float tot = 0.0;
+    for (int i = 0; i < seq_len; i++) {
+      // qk[i] = std::exp(qk[i] - max_val);
+      qk[head_idx * head_offset + batch_idx * batch_offset + i] =
+          expf(qk[head_idx * head_offset + batch_idx * batch_offset + i] -
+               max_values[head_idx * batch_size + batch_idx]);
+      tot += qk[head_idx * head_offset + batch_idx * batch_offset + i];
+    }
+    for (int i = 0; i < seq_len; i++) {
+      qk[head_idx * head_offset + batch_idx * batch_offset + i] /= tot;
+    }
+  }
+  // Mark this thread as finished
+  finished_flag->store(true, std::memory_order_release);
+
+  clock_gettime(CLOCK_REALTIME, &end);
+  duration->first = thread_idx;
+  duration->second =
+      ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+}
+
+// [ ] Function to prepare the threads for Softmax
+void prepare_softmax(float *qk, const float *max_values, const size_t seq_len,
+                     const size_t head_num, const size_t batch_size,
+                     const size_t head_offset, const int batch_offset,
+                     const int thread_num) {
+  // Each thread works on its slice
+  int const total_work = head_num * batch_size;
+  int const work_per_thread = total_work / thread_num;
+  int const work_remained = total_work % thread_num;
+
+  int const priority = sched_get_priority_max(SCHED_FIFO);
+
+  // Init thread pool
+  std::vector<std::thread> threads;
+  int start_idx = 0, end_idx = 0;
+  // int acc = 0;
+  for (size_t tidx = 0; tidx < thread_num; ++tidx) {
+    start_idx = end_idx;
+    end_idx = tidx < work_remained ? start_idx + work_per_thread + 1
+                                   : start_idx + work_per_thread;
+
+    threads.emplace_back(softmax_trusted_threads, qk, max_values, seq_len,
+                         head_num, batch_size, head_offset, batch_offset, tidx,
+                         thread_num, start_idx, end_idx, &ready_flag,
+                         &finished_flags[tidx], &thread_results[tidx]);
+
+    // Get the native handle for the created thread
+    pthread_t nativeHandle = threads.back().native_handle();
+
+    // Define the scheduling parameters
+    struct sched_param param;
+    param.sched_priority = priority;  // Set the same priorities for each thread
+
+    // Set the scheduling policy to SCHED_FIFO
+    int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
+    if (ret != 0) {
+      std::cerr << "Failed to set scheduling policy for thread " << tidx << ": "
+                << strerror(ret) << std::endl;
+    }
+    // Set CPU affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    // Method1
+    CPU_SET(tidx + 8, &cpuset);  // Bind to specific CPU core
+    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    if (ret != 0) {
+      std::cerr << "Failed to set CPU affinity for thread " << tidx << ": "
+                << strerror(ret) << std::endl;
+    }
+  }
+
+  bool all_threads_finished = false;
+  bool thread_finished[thread_num];
+  for (int i = 0; i < thread_num; ++i) thread_finished[i] = false;
+
+  while (!all_threads_finished) {
+    // for (int i = 0; i < thread_num; ++i)
+    //   printf("Thread %d: %d\n", i,
+    //          finished_flags[i].load(std::memory_order_acquire));
+    all_threads_finished = true;
+    for (int i = 0; i < thread_num; ++i) {
+      if (!thread_finished[i]) {
+        if (finished_flags[i].load(std::memory_order_acquire)) {
+          thread_finished[i] = true;
+        } else {
+          all_threads_finished = false;
+        }
+      }
+    }
+  }
+  clock_gettime(CLOCK_REALTIME, &_end);
+  done_flag.store(true, std::memory_order_release);
+  // DEBUG
+  std::sort(
+      thread_results, thread_results + thread_num,
+      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
+  for (size_t i = 0; i < thread_num; i++)
+    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+           thread_results[i].second);
+
+  printf("Variance: %ld\n",
+         thread_results[thread_num - 1].second - thread_results[0].second);
+  for (auto &thread : threads) thread.join();
+}
+
+///////////////////////////////////////////////////////////////////
+
 // Function to set the ready_flag from Python
 void set_ready_flag() {
   // usleep(1000000);
-  // clock_gettime(CLOCK_REALTIME, &_start);
-  clock_gettime(CLOCK_MONOTONIC, &_start);
+  clock_gettime(CLOCK_REALTIME, &_start);
   ready_flag.store(true, std::memory_order_release);
+  // printf("ready_flag: %p\n", &ready_flag);
 }
 
 // Function to check the all threads are done
-// bool is_finished() { return done_flag.load(std::memory_order_acquire); }
-// bool is_finished()
-// {
-//   while (!done_flag.load(std::memory_order_acquire))
-//   {
-//   }
-//   return true;
-// }
 long is_finished() {
   while (!done_flag.load(std::memory_order_acquire)) {
   }

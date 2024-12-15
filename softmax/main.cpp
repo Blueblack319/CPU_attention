@@ -116,6 +116,7 @@ int main(int argc, char *argv[]) {
   // Workload for each thread
   int const total_work = head_num * batch_size;
   int const work_per_thread = total_work / thread_num;
+  int const work_remained = total_work % thread_num;
   int const priority = sched_get_priority_max(SCHED_FIFO);
 
   // Check for the variance between threads
@@ -123,25 +124,40 @@ int main(int argc, char *argv[]) {
 
   // Init thread pool
   std::vector<std::thread> threads;
+  int start_idx = 0, end_idx = 0;
+  int acc = 0;
   for (int t = 0; t < thread_num; ++t) {
-    const int start_idx = t * work_per_thread;
-    const int end_idx = std::min(start_idx + work_per_thread, total_work);
+    start_idx = end_idx;
+    end_idx = t < work_remained ? start_idx + work_per_thread + 1
+                                : start_idx + work_per_thread;
+    int cpu_id = t + acc;
+    acc += 1;
     threads.emplace_back(softmax_trusted_threads, qk, max_arr, seq_len,
                          head_num, batch_size, head_offset, batch_offset, t,
                          thread_num, start_idx, end_idx, &ready_flag,
                          &finished_flags[t], &end_times[t]);
 
-    // // Get the native handle for the created thread
+    // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
 
     // Define the scheduling parameters
     struct sched_param param;
-    param.sched_priority = priority;  // Set the highest priority
+    param.sched_priority = priority;  // Set the same priorities for each thread
 
     // Set the scheduling policy to SCHED_FIFO
     int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
     if (ret != 0) {
       std::cerr << "Failed to set scheduling policy for thread " << t << ": "
+                << strerror(ret) << std::endl;
+    }
+    // Set CPU affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    // Method1
+    CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
+    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    if (ret != 0) {
+      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
   }

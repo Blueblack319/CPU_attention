@@ -88,11 +88,21 @@ lib.prepare_key_gemv_half.argtypes = [
     ctypes.c_int,  # num_threads
     # ctypes.POINTER(ctypes.c_float) # done
 ]
+lib.prepare_softmax.argtypes = [
+    ctypes.POINTER(ctypes.c_float),  # qk
+    ctypes.POINTER(ctypes.c_float),  # max_values
+    ctypes.c_uint,  # seq_len
+    ctypes.c_uint,  # head_num
+    ctypes.c_uint,  # batch_size
+    ctypes.c_uint,  # head_offset
+    ctypes.c_uint,  # batch_offset
+    ctypes.c_int,  # thread_num
+]
+lib.prepare_softmax.restype = None
 lib.prepare_key_gemv_half.restype = None
 lib.set_ready_flag.argtypes = []
 lib.set_ready_flag.restype = None
 lib.is_finished.argtypes = []
-# lib.is_finished.restype = ctypes.c_double
 lib.is_finished.restype = ctypes.c_long
 lib.clear_flags.argtypes = []
 lib.clear_flags.restype = None
@@ -102,7 +112,7 @@ lib.wait_finished.argtypes = []
 lib.wait_finished.restype = None
 
 
-def test_with_threading(
+def test_gemv(
     batch_size,
     K,
     thread_num,
@@ -127,7 +137,7 @@ def test_with_threading(
             os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
         except PermissionError:
             print("Permission denied. Try running as root.")
-        
+
         os.sched_setaffinity(0, {5})
         lib.prepare_value_gemv(
             # ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -200,6 +210,7 @@ def test_with_threading(
             ctypes.c_int(out_logits_batch_offset),
             ctypes.c_int(thread_num),
         )
+
     ######
 
     # Create and run a thread
@@ -224,13 +235,9 @@ def test_with_threading(
     print("=====================================================")
     start_t = time.perf_counter_ns()
     lib.set_ready_flag()
-
-    # while not lib.is_finished():
-    #     pass
-    # fin = lib.is_finished()
-
     lib.wait_finished()
     end_t = time.perf_counter_ns()
+
     duration = (end_t - start_t) / 1e3
     # duration = lib.get_duration()
     # duration = lib.is_finished() / 1e3
@@ -238,13 +245,15 @@ def test_with_threading(
     lib.clear_flags()
     thread.join()
 
+
 def aligned_array(shape, dtype, alignment=64):
     """Create a memory-aligned numpy array."""
     nbytes = np.prod(shape) * np.dtype(dtype).itemsize
     buffer = np.empty(nbytes + alignment, dtype=np.uint8)
     start_index = -buffer.ctypes.data % alignment
-    aligned_buffer = buffer[start_index:start_index + nbytes]
+    aligned_buffer = buffer[start_index : start_index + nbytes]
     return np.ndarray(shape, dtype=dtype, buffer=aligned_buffer)
+
 
 def test_value_gemv(batch_size, K, thread_num):
     # Elevate the process to the highest priority(real-time class)
@@ -279,14 +288,20 @@ def test_value_gemv(batch_size, K, thread_num):
     # assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
 
     # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
-    values = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
-    logits = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
-    result = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+    values = aligned_array(
+        (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+    )
+    logits = aligned_array(
+        (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+    )
+    result = aligned_array(
+        (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+    )
 
     # # Fill values and logits with random values
     values[:] = np.random.rand(*values.shape).astype(np.float32)
     logits[:] = np.random.rand(*logits.shape).astype(np.float32)
-    
+
     # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
     assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
     assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
@@ -300,7 +315,7 @@ def test_value_gemv(batch_size, K, thread_num):
     out_logits_batch_offset = Dh
 
     for _ in range(ITER):
-        test_with_threading(
+        test_gemv(
             batch_size,
             K,
             thread_num,
@@ -324,14 +339,20 @@ def test_value_gemv(batch_size, K, thread_num):
         # assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
         # assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
         # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
-        values = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
-        logits = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
-        result = aligned_array((head_num, batch_size, K, Dh), dtype=np.float32, alignment=64)
+        values = aligned_array(
+            (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+        )
+        logits = aligned_array(
+            (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+        )
+        result = aligned_array(
+            (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+        )
 
         # # Fill values and logits with random values
         values[:] = np.random.rand(*values.shape).astype(np.float32)
         logits[:] = np.random.rand(*logits.shape).astype(np.float32)
-        
+
         # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
         assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
         assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
@@ -348,11 +369,12 @@ def _attention_weights(q, k, mask, b, src_s, n_head):
     # attn_weights = attn_weights.view(b, n_head, 1, src_s)
     # if mask is not None:
     #     attn_weights = torch.where(mask, attn_weights, -1e4)
-    
+
     # attn_weights = attn_weights.view(b * n_head, 1, src_s)
     # attn_weights = F.softmax(attn_weights, dim=2)
 
     return attn_weights
+
 
 def test_key_gemv(batch_size, K, thread_num, dtype=torch.float16):
     head_num = 32
@@ -372,7 +394,7 @@ def test_key_gemv(batch_size, K, thread_num, dtype=torch.float16):
     # print(f"keys shape: {keys.shape}")
 
     for _ in range(ITER):
-        test_with_threading(
+        test_gemv(
             batch_size,
             K,
             thread_num,
@@ -390,8 +412,8 @@ def test_key_gemv(batch_size, K, thread_num, dtype=torch.float16):
             True,
         )
         keys = keys.transpose(1, 2)
-        queries = queries.to('cuda')
-        keys = keys.to('cuda')
+        queries = queries.to("cuda")
+        keys = keys.to("cuda")
         attn_weights = _attention_weights(queries, keys, None, batch_size, K, head_num)
         attn_weights = attn_weights.reshape(head_num, batch_size, K)
         attn_weights_max, _ = torch.max(attn_weights, dim=2, keepdim=True)
@@ -402,6 +424,124 @@ def test_key_gemv(batch_size, K, thread_num, dtype=torch.float16):
         keys = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
         queries = torch.rand(head_num * batch_size, 1, Dh, dtype=dtype)
         logits = torch.zeros(head_num, batch_size, K, dtype=dtype)
+
+
+###############################################
+# Test for Softmax
+def test_softmax_threads(
+    qk, max_values, head_num, batch_size, seq_len, head_offset, batch_offset, thread_num
+):
+    ##############################
+    # Tasks for each thread
+    def task_softmax():
+        # Elevate the process to the highest priority(real-time class)
+        sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+        try:
+            os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
+        except PermissionError:
+            print("Permission denied. Try running as root.")
+
+        os.sched_setaffinity(0, {5})
+        lib.prepare_softmax(
+            ctypes.cast(qk.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            ctypes.cast(max_values.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            ctypes.c_uint(seq_len),
+            ctypes.c_uint(head_num),
+            ctypes.c_uint(batch_size),
+            ctypes.c_uint(head_offset),
+            ctypes.c_uint(batch_offset),
+            ctypes.c_int(thread_num),
+        )
+
+    # def task_softmax_half():
+    #     # Elevate the process to the highest priority(real-time class)
+    #     sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+    #     try:
+    #         os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
+    #     except PermissionError:
+    #         print("Permission denied. Try running as root.")
+
+    #     # void prepare_softmax(float *qk, const float *max_arr, const size_t seq_len,
+    #     #              const size_t head_num, const size_t batch_size,
+    #     #              const size_t head_offset, const size_t batch_offset,
+    #     #              const int thread_idx, const int thread_num)
+    #     os.sched_setaffinity(0, {5})
+    #     lib.prepare_softmax(
+    #         ctypes.cast(qk.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    #         ctypes.cast(max_values.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+    #         ctypes.c_int(seq_len),
+    #         ctypes.c_int(head_num),
+    #         ctypes.c_int(batch_size),
+    #         ctypes.c_int(head_offset),
+    #         ctypes.c_int(batch_offset),
+    #         ctypes.c_int(thread_num),
+    #     )
+
+    ##############################
+
+    # Create and run a thread
+    if qk.dtype == torch.float:
+        thread = threading.Thread(target=task_softmax)
+    else:
+        pass
+    # thread = threading.Thread(target=task_softmax_half)
+
+    thread.start()
+    ######
+
+    time.sleep(1)
+
+    print("=====================================================")
+    start_t = time.perf_counter_ns()
+    lib.set_ready_flag()
+    lib.wait_finished()
+    end_t = time.perf_counter_ns()
+
+    duration = (end_t - start_t) / 1e3
+    print(f"Took {duration} microseconds")
+    lib.clear_flags()
+    thread.join()
+
+
+#  ./main 64 1024 81 8 => 500 ms
+def test_softmax(batch_size, K, thread_num, dtype=torch.float):
+    head_num = 32
+    seq_len = 1024
+
+    head_offset = batch_size * seq_len
+    batch_offset = seq_len
+
+    qk = torch.rand(head_num, batch_size, seq_len, dtype=dtype)
+
+    # for _ in range(ITER):
+    # [ ] Produce the answer by Pytorch
+    start_torch = time.perf_counter_ns()
+    logits_from_torch = F.softmax(qk, dim=-1)
+    end_torch = time.perf_counter_ns()
+
+    print(f"Logits: {logits_from_torch.shape}")
+    duration = (end_torch - start_torch) / 1e3
+    print(f"Took {duration} microseconds")
+
+    # [ ] Calculate max before Softmax
+    max_values, max_indices = torch.max(qk, dim=-1, keepdim=True)
+
+    # [ ] Run CPU Softmax
+    test_softmax_threads(
+        qk,
+        max_values,
+        head_num,
+        batch_size,
+        seq_len,
+        head_offset,
+        batch_offset,
+        thread_num,
+    )
+
+    # [ ] Calculate the MSE and MAE
+
+
+###############################################
 
 
 def check_power_of_2(value):
@@ -422,14 +562,17 @@ def main():
     parser.add_argument("--K", type=int, default=81, help="Number of topk indices")
     parser.add_argument("--thread_num", type=int, default=48, help="Number of threads")
     parser.add_argument("--key_gemv", action="store_true", help="Test Key GEMV")
+    parser.add_argument("--softmax", action="store_true", help="Test Softmax")
 
     args = parser.parse_args()
 
-    if args.key_gemv:
-        # check_power_of_2(args.K)
-        test_key_gemv(args.batch_size, args.K, args.thread_num, dtype=torch.float16)
+    if args.softmax:
+        test_softmax(args.batch_size, args.K, args.thread_num, dtype=torch.float)
     else:
-        test_value_gemv(args.batch_size, args.K, args.thread_num)
+        if args.key_gemv:
+            test_key_gemv(args.batch_size, args.K, args.thread_num, dtype=torch.float16)
+        else:
+            test_value_gemv(args.batch_size, args.K, args.thread_num)
 
 
 if __name__ == "__main__":
