@@ -325,9 +325,9 @@ def test_value_gemv(batch_size, K, thread_num, dtype=torch.float16):
 
     ######
     # Memory-aligned allocation using Torch
-    values = torch.rand(head_num * batch_size * K * Dh, dtype=dtype)
-    logits = torch.rand(head_num * batch_size * K, dtype=dtype)
-    result = torch.zeros(head_num * batch_size * Dh, dtype=dtype)
+    values = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
+    logits = torch.rand(head_num * batch_size, 1, K, dtype=dtype)
+    result = torch.zeros(head_num * batch_size, 1, Dh, dtype=dtype)
 
     # Check memory alignment
     assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
@@ -381,6 +381,13 @@ def test_value_gemv(batch_size, K, thread_num, dtype=torch.float16):
             out_logits_batch_offset,
             False,
         )
+        # [x] Check the functionality
+        attn_out = torch.bmm(logits.to(device="cuda"), values.to(device="cuda"))
+        print(f"result: {result.shape}")
+        print(result[0])
+        print(f"attn_out: {attn_out.shape}")
+        print(attn_out[0])
+
         ######
         # Torch version
         values = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)

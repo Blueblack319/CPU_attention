@@ -3175,15 +3175,16 @@ void prepare_value_gemv(float *values, float *logits, float *result,
   clock_gettime(CLOCK_MONOTONIC, &_end);
   done_flag.store(true, std::memory_order_release);
   // DEBUGGING
-  std::sort(
-      thread_results, thread_results + thread_num,
-      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
-  for (size_t i = 0; i < thread_num; i++)
-    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
-           thread_results[i].second);
+  // std::sort(
+  //     thread_results, thread_results + thread_num,
+  //     [](const pair_tr &i, const pair_tr &j) { return i.second < j.second;
+  //     });
+  // for (size_t i = 0; i < thread_num; i++)
+  //   printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+  //          thread_results[i].second);
 
-  printf("Variance: %ld\n",
-         thread_results[thread_num - 1].second - thread_results[0].second);
+  // printf("Variance: %ld\n",
+  //        thread_results[thread_num - 1].second - thread_results[0].second);
   for (auto &thread : threads) thread.join();
 }
 
@@ -3269,15 +3270,16 @@ void prepare_value_gemv_half(
   clock_gettime(CLOCK_MONOTONIC, &_end);
   done_flag.store(true, std::memory_order_release);
   // DEBUGGING
-  std::sort(
-      thread_results, thread_results + thread_num,
-      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
-  for (size_t i = 0; i < thread_num; i++)
-    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
-           thread_results[i].second);
+  // std::sort(
+  //     thread_results, thread_results + thread_num,
+  //     [](const pair_tr &i, const pair_tr &j) { return i.second < j.second;
+  //     });
+  // for (size_t i = 0; i < thread_num; i++)
+  //   printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+  //          thread_results[i].second);
 
-  printf("Variance: %ld\n",
-         thread_results[thread_num - 1].second - thread_results[0].second);
+  // printf("Variance: %ld\n",
+  //        thread_results[thread_num - 1].second - thread_results[0].second);
   for (auto &thread : threads) thread.join();
 }
 
@@ -3366,15 +3368,16 @@ void prepare_key_gemv(float *keys, float *queries, float *logits,
   clock_gettime(CLOCK_MONOTONIC, &_end);
   done_flag.store(true, std::memory_order_release);
   // DEBUGGING
-  std::sort(
-      thread_results, thread_results + thread_num,
-      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
-  for (size_t i = 0; i < thread_num; i++)
-    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
-           thread_results[i].second);
+  // std::sort(
+  //     thread_results, thread_results + thread_num,
+  //     [](const pair_tr &i, const pair_tr &j) { return i.second < j.second;
+  //     });
+  // for (size_t i = 0; i < thread_num; i++)
+  //   printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+  //          thread_results[i].second);
 
-  printf("Variance: %ld\n",
-         thread_results[thread_num - 1].second - thread_results[0].second);
+  // printf("Variance: %ld\n",
+  //        thread_results[thread_num - 1].second - thread_results[0].second);
   for (auto &thread : threads) thread.join();
 }
 
@@ -3461,15 +3464,16 @@ void prepare_key_gemv_half(
   clock_gettime(CLOCK_MONOTONIC, &_end);
   done_flag.store(true, std::memory_order_release);
   // DEBUGGING
-  std::sort(
-      thread_results, thread_results + thread_num,
-      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
-  for (size_t i = 0; i < thread_num; i++)
-    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
-           thread_results[i].second);
+  // std::sort(
+  //     thread_results, thread_results + thread_num,
+  //     [](const pair_tr &i, const pair_tr &j) { return i.second < j.second;
+  //     });
+  // for (size_t i = 0; i < thread_num; i++)
+  //   printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+  //          thread_results[i].second);
 
-  printf("Variance: %ld\n",
-         thread_results[thread_num - 1].second - thread_results[0].second);
+  // printf("Variance: %ld\n",
+  //        thread_results[thread_num - 1].second - thread_results[0].second);
   for (auto &thread : threads) thread.join();
 }
 
@@ -3593,15 +3597,16 @@ void prepare_softmax(float *qk, const float *max_values,
   clock_gettime(CLOCK_REALTIME, &_end);
   done_flag.store(true, std::memory_order_release);
   // DEBUG
-  std::sort(
-      thread_results, thread_results + thread_num,
-      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
-  for (size_t i = 0; i < thread_num; i++)
-    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
-           thread_results[i].second);
+  // std::sort(
+  //     thread_results, thread_results + thread_num,
+  //     [](const pair_tr &i, const pair_tr &j) { return i.second < j.second;
+  //     });
+  // for (size_t i = 0; i < thread_num; i++)
+  //   printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+  //          thread_results[i].second);
 
-  printf("Variance: %ld\n",
-         thread_results[thread_num - 1].second - thread_results[0].second);
+  // printf("Variance: %ld\n",
+  //        thread_results[thread_num - 1].second - thread_results[0].second);
   for (auto &thread : threads) thread.join();
 }
 
