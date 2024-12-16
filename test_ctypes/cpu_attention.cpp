@@ -16,7 +16,7 @@ extern "C" {
 ////////////////////////////////////////////////////////////////////
 // For Key GEMV
 float *keys, *values, *queries, *logits;
-half *keys_half, *values_half, *queries_half, *logits_half;
+half *keys_half, *values_half, *queries_half, *logits_half, *results_half;
 
 inline float hsum_128(__m128 x) {
   x = _mm_add_ps(x, _mm_movehl_ps(x, x));
@@ -2238,7 +2238,7 @@ pair_tr thread_results[THREAD_NUM];
 // double thread_results[THREAD_NUM];
 static struct timespec _start, _end, _end_1;
 
-// [x] Value GEMV with multiple threads
+// [x] Value GEMV with FP32
 void value_gemv_threaded(float *values, float *logits, float *result,
                          int const head_num, int const batch_size, int const K,
                          int const Dh, int const values_head_offset,
@@ -2637,6 +2637,198 @@ void key_gemv_threaded(
       ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
 }
 
+// [x] Value GEMV with FP16
+void value_gemv_threaded_half(
+    half *values_, half *logits_, half *results_, int const num_head,
+    int const batch_size, int const K, int const Dh,
+    int const values_head_offset, int const values_batch_offset,
+    int const logits_haed_offset, int const logits_batch_offset,
+    int const result_head_offset, int const result_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx, std::atomic<bool> *ready_flag,
+    std::atomic<bool> *finished_flag, pair_tr *duration) {
+  struct timespec start, end;
+  values_half = values_;
+  logits_half = logits_;
+  results_half = results_;
+  const int last_case = K % 16;
+
+  while (!(ready_flag->load(std::memory_order_acquire))) {
+    // while (!(*ready_flag)) {
+  }
+  clock_gettime(CLOCK_REALTIME, &start);
+
+  // Multiply and Add
+  for (int idx = start_idx; idx < end_idx; ++idx) {
+    int i = idx / batch_size;
+    int j = idx % batch_size;
+
+    __m256 c00 = _mm256_setzero_ps();
+    __m256 c01 = _mm256_setzero_ps();
+    __m256 c02 = _mm256_setzero_ps();
+    __m256 c03 = _mm256_setzero_ps();
+    __m256 c04 = _mm256_setzero_ps();
+    __m256 c05 = _mm256_setzero_ps();
+    __m256 c06 = _mm256_setzero_ps();
+    __m256 c07 = _mm256_setzero_ps();
+    __m256 c08 = _mm256_setzero_ps();
+    __m256 c09 = _mm256_setzero_ps();
+    __m256 c10 = _mm256_setzero_ps();
+    __m256 c11 = _mm256_setzero_ps();
+    __m256 c12 = _mm256_setzero_ps();
+    __m256 c13 = _mm256_setzero_ps();
+    __m256 c14 = _mm256_setzero_ps();
+    __m256 c15 = _mm256_setzero_ps();
+
+    for (int k = 0; k < K; ++k) {
+      float logit = __half2float(
+          logits_half[i * logits_haed_offset + j * logits_batch_offset + k]);
+      __m256 logit_vec = _mm256_set1_ps(logit);
+
+      if (k + 1 < K) {
+        _mm_prefetch((const char *)(values_half + i * values_head_offset +
+                                    j * values_batch_offset + (k + 1) * Dh),
+                     _MM_HINT_T0);
+      }
+      __m256 v00 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh)));
+      __m256 v01 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 8)));
+      __m256 v02 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 16)));
+      __m256 v03 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 24)));
+      __m256 v04 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 32)));
+      __m256 v05 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 40)));
+      __m256 v06 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 48)));
+      __m256 v07 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 56)));
+      __m256 v08 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 64)));
+      __m256 v09 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 72)));
+      __m256 v10 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 80)));
+      __m256 v11 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 88)));
+      __m256 v12 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 96)));
+      __m256 v13 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 104)));
+      __m256 v14 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 112)));
+      __m256 v15 = _mm256_cvtph_ps(
+          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+                                     j * values_batch_offset + k * Dh + 120)));
+      c00 = _mm256_fmadd_ps(logit_vec, v00, c00);
+      c01 = _mm256_fmadd_ps(logit_vec, v01, c01);
+      c02 = _mm256_fmadd_ps(logit_vec, v02, c02);
+      c03 = _mm256_fmadd_ps(logit_vec, v03, c03);
+      c04 = _mm256_fmadd_ps(logit_vec, v04, c04);
+      c05 = _mm256_fmadd_ps(logit_vec, v05, c05);
+      c06 = _mm256_fmadd_ps(logit_vec, v06, c06);
+      c07 = _mm256_fmadd_ps(logit_vec, v07, c07);
+      c08 = _mm256_fmadd_ps(logit_vec, v08, c08);
+      c09 = _mm256_fmadd_ps(logit_vec, v09, c09);
+      c10 = _mm256_fmadd_ps(logit_vec, v10, c10);
+      c11 = _mm256_fmadd_ps(logit_vec, v11, c11);
+      c12 = _mm256_fmadd_ps(logit_vec, v12, c12);
+      c13 = _mm256_fmadd_ps(logit_vec, v13, c13);
+      c14 = _mm256_fmadd_ps(logit_vec, v14, c14);
+      c15 = _mm256_fmadd_ps(logit_vec, v15, c15);
+    }
+    // Store the accumulated result back into the result array
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset),
+        _mm256_cvtps_ph(c00, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 8),
+        _mm256_cvtps_ph(c01, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 16),
+        _mm256_cvtps_ph(c02, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 24),
+        _mm256_cvtps_ph(c03, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 32),
+        _mm256_cvtps_ph(c04, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 40),
+        _mm256_cvtps_ph(c05, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 48),
+        _mm256_cvtps_ph(c06, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 56),
+        _mm256_cvtps_ph(c07, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 64),
+        _mm256_cvtps_ph(c08, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 72),
+        _mm256_cvtps_ph(c09, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 80),
+        _mm256_cvtps_ph(c10, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 88),
+        _mm256_cvtps_ph(c11, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 96),
+        _mm256_cvtps_ph(c12, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 104),
+        _mm256_cvtps_ph(c13, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 112),
+        _mm256_cvtps_ph(c14, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    _mm_store_si128(
+        (__m128i *)(results_half + i * result_head_offset +
+                    j * result_batch_offset + 120),
+        _mm256_cvtps_ph(c15, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+  }
+  // Mark this thread as finished
+  finished_flag->store(true, std::memory_order_release);
+  clock_gettime(CLOCK_REALTIME, &end);
+  duration->first = thread_id;
+  duration->second =
+      ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+}
+
 // [x] Key GEMV with FP16
 void key_gemv_threaded_half(
     half *keys_, half *queries_, half *logits_, int const num_head,
@@ -2995,6 +3187,100 @@ void prepare_value_gemv(float *values, float *logits, float *result,
   for (auto &thread : threads) thread.join();
 }
 
+void prepare_value_gemv_half(
+    half *values, half *logits, half *result, int const head_num,
+    int const batch_size, int const K, int const Dh,
+    int const values_head_offset, int const values_batch_offset,
+    int const logits_head_offset, int const logits_batch_offset,
+    int const result_head_offset, int const result_batch_offset,
+    int const thread_num) {
+  // printf("Ready Flag: %p\n", &ready_flag);
+  // printf("Done Flag: %p\n", &done_flag);
+  // Each thread works on its slice
+  int const total_work = head_num * batch_size;
+  int const work_per_thread = total_work / thread_num;
+  int const work_remained = total_work % thread_num;
+
+  //   int const min_priority = sched_get_priority_min(SCHED_FIFO);
+  int const max_priority = sched_get_priority_max(SCHED_FIFO);
+
+  int priority = max_priority;  // Base priority for all threads
+
+  // Init thread pool
+  std::vector<std::thread> threads;
+  int start_idx = 0, end_idx = 0;
+  int acc = 0;
+  for (int t = 0; t < thread_num; ++t) {
+    start_idx = end_idx;
+    end_idx = t < work_remained ? start_idx + work_per_thread + 1
+                                : start_idx + work_per_thread;
+    int cpu_id = t + acc;
+    acc += 1;
+    // int cpu_id = t;
+    threads.emplace_back(
+        value_gemv_threaded_half, values, logits, result, head_num, batch_size,
+        K, Dh, values_head_offset, values_batch_offset, logits_head_offset,
+        logits_batch_offset, result_head_offset, result_batch_offset, cpu_id,
+        thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t],
+        &thread_results[t]);
+
+    // Get the native handle for the created thread
+    pthread_t nativeHandle = threads.back().native_handle();
+
+    // Define the scheduling parameters
+    struct sched_param param;
+    param.sched_priority = priority;  // Set the same priorities for each thread
+
+    // Set the scheduling policy to SCHED_FIFO
+    int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
+    if (ret != 0) {
+      std::cerr << "Failed to set scheduling policy for thread " << t << ": "
+                << strerror(ret) << std::endl;
+    }
+    // Set CPU affinity
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
+    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    if (ret != 0) {
+      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+                << strerror(ret) << std::endl;
+    }
+  }
+
+  bool all_threads_finished = false;
+  bool thread_finished[thread_num];
+  for (int i = 0; i < thread_num; ++i) thread_finished[i] = false;
+
+  while (!all_threads_finished) {
+    all_threads_finished = true;
+    for (int i = 0; i < thread_num; ++i) {
+      if (!thread_finished[i]) {
+        if (finished_flags[i].load(std::memory_order_acquire)) {
+          //   clock_gettime(CLOCK_REALTIME, &thread_finish_times[i]);
+          thread_finished[i] = true;
+        } else {
+          all_threads_finished = false;
+        }
+      }
+    }
+  }
+  // clock_gettime(CLOCK_REALTIME, &_end);
+  clock_gettime(CLOCK_MONOTONIC, &_end);
+  done_flag.store(true, std::memory_order_release);
+  // DEBUGGING
+  std::sort(
+      thread_results, thread_results + thread_num,
+      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
+  for (size_t i = 0; i < thread_num; i++)
+    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+           thread_results[i].second);
+
+  printf("Variance: %ld\n",
+         thread_results[thread_num - 1].second - thread_results[0].second);
+  for (auto &thread : threads) thread.join();
+}
+
 // Function to prepare the threads for Key GEMV
 void prepare_key_gemv(float *keys, float *queries, float *logits,
                       int const head_num, int const batch_size, int const K,
@@ -3189,10 +3475,11 @@ void prepare_key_gemv_half(
 
 ///////////////////////////////////////////////////////////////////
 void softmax_trusted_threads(float *qk, const float *max_values,
-                             const size_t seq_len, const size_t head_num,
-                             const size_t batch_size, const size_t head_offset,
-                             const size_t batch_offset, const int thread_idx,
-                             const size_t thread_num, const int start_idx,
+                             const float *sums_quant, float *sums_topk,
+                             const int seq_len, const int head_num,
+                             const int batch_size, const int head_offset,
+                             const int batch_offset, const int thread_idx,
+                             const int thread_num, const int start_idx,
                              const int end_idx, std::atomic<bool> *ready_flag,
                              std::atomic<bool> *finished_flag,
                              pair_tr *duration) {
@@ -3204,17 +3491,22 @@ void softmax_trusted_threads(float *qk, const float *max_values,
   for (int idx = start_idx; idx < end_idx; ++idx) {
     const int head_idx = idx / batch_size;
     const int batch_idx = idx % batch_size;
+    // printf(
+    //     "start_idx: %d, end_idx: %d, head_idx: %d, batch_idx: %d, Index: %d,
+    //     " "batch_size: %d\n", start_idx, end_idx, head_idx, batch_idx, idx,
+    //     batch_size, idx / static_cast<int>(batch_size));
+    const float sum = sums_quant[head_idx * batch_size + batch_idx];
+    const float max = max_values[head_idx * batch_size + batch_idx];
 
     float tot = 0.0;
     for (int i = 0; i < seq_len; i++) {
-      // qk[i] = std::exp(qk[i] - max_val);
       qk[head_idx * head_offset + batch_idx * batch_offset + i] =
-          expf(qk[head_idx * head_offset + batch_idx * batch_offset + i] -
-               max_values[head_idx * batch_size + batch_idx]);
+          expf(qk[head_idx * head_offset + batch_idx * batch_offset + i] - max);
       tot += qk[head_idx * head_offset + batch_idx * batch_offset + i];
     }
+    sums_topk[head_idx * batch_size + batch_idx] = tot;
     for (int i = 0; i < seq_len; i++) {
-      qk[head_idx * head_offset + batch_idx * batch_offset + i] /= tot;
+      qk[head_idx * head_offset + batch_idx * batch_offset + i] /= sum;
     }
   }
   // Mark this thread as finished
@@ -3227,10 +3519,11 @@ void softmax_trusted_threads(float *qk, const float *max_values,
 }
 
 // [x] Function to prepare the threads for Softmax
-void prepare_softmax(float *qk, const float *max_values, const size_t seq_len,
-                     const size_t head_num, const size_t batch_size,
-                     const size_t head_offset, const int batch_offset,
-                     const int thread_num) {
+void prepare_softmax(float *qk, const float *max_values,
+                     const float *sums_quant, float *sums_topk,
+                     const int seq_len, const int head_num,
+                     const int batch_size, const int head_offset,
+                     const int batch_offset, const int thread_num) {
   // Each thread works on its slice
   int const total_work = head_num * batch_size;
   int const work_per_thread = total_work / thread_num;
@@ -3242,15 +3535,16 @@ void prepare_softmax(float *qk, const float *max_values, const size_t seq_len,
   std::vector<std::thread> threads;
   int start_idx = 0, end_idx = 0;
   // int acc = 0;
-  for (size_t tidx = 0; tidx < thread_num; ++tidx) {
+  for (int tidx = 0; tidx < thread_num; ++tidx) {
     start_idx = end_idx;
     end_idx = tidx < work_remained ? start_idx + work_per_thread + 1
                                    : start_idx + work_per_thread;
 
-    threads.emplace_back(softmax_trusted_threads, qk, max_values, seq_len,
-                         head_num, batch_size, head_offset, batch_offset, tidx,
-                         thread_num, start_idx, end_idx, &ready_flag,
-                         &finished_flags[tidx], &thread_results[tidx]);
+    threads.emplace_back(softmax_trusted_threads, qk, max_values, sums_quant,
+                         sums_topk, seq_len, head_num, batch_size, head_offset,
+                         batch_offset, tidx, thread_num, start_idx, end_idx,
+                         &ready_flag, &finished_flags[tidx],
+                         &thread_results[tidx]);
 
     // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();

@@ -53,6 +53,24 @@ lib.prepare_value_gemv.argtypes = [
     # ctypes.POINTER(ctypes.c_float) # done
 ]
 lib.prepare_value_gemv.restype = None
+lib.prepare_value_gemv_half.argtypes = [
+    ctypes.POINTER(ctypes.c_uint16),  # values
+    ctypes.POINTER(ctypes.c_uint16),  # logits
+    ctypes.POINTER(ctypes.c_uint16),  # result
+    ctypes.c_int,  # head_num
+    ctypes.c_int,  # batch_size
+    ctypes.c_int,  # K
+    ctypes.c_int,  # Dh
+    ctypes.c_int,  # values_head_offset
+    ctypes.c_int,  # values_batch_offset
+    ctypes.c_int,  # logits_head_offset
+    ctypes.c_int,  # logits_batch_offset
+    ctypes.c_int,  # result_head_offset
+    ctypes.c_int,  # result_batch_offset
+    ctypes.c_int,  # num_threads
+    # ctypes.POINTER(ctypes.c_float) # done
+]
+lib.prepare_value_gemv_half.restype = None
 lib.prepare_key_gemv.argtypes = [
     ctypes.POINTER(ctypes.c_float),  # keys
     ctypes.POINTER(ctypes.c_float),  # queries
@@ -88,18 +106,20 @@ lib.prepare_key_gemv_half.argtypes = [
     ctypes.c_int,  # num_threads
     # ctypes.POINTER(ctypes.c_float) # done
 ]
+lib.prepare_key_gemv_half.restype = None
 lib.prepare_softmax.argtypes = [
     ctypes.POINTER(ctypes.c_float),  # qk
     ctypes.POINTER(ctypes.c_float),  # max_values
-    ctypes.c_uint,  # seq_len
-    ctypes.c_uint,  # head_num
-    ctypes.c_uint,  # batch_size
-    ctypes.c_uint,  # head_offset
-    ctypes.c_uint,  # batch_offset
+    ctypes.POINTER(ctypes.c_float),  # sums_quant
+    ctypes.POINTER(ctypes.c_float),  # sums_topk
+    ctypes.c_int,  # seq_len
+    ctypes.c_int,  # head_num
+    ctypes.c_int,  # batch_size
+    ctypes.c_int,  # head_offset
+    ctypes.c_int,  # batch_offset
     ctypes.c_int,  # thread_num
 ]
 lib.prepare_softmax.restype = None
-lib.prepare_key_gemv_half.restype = None
 lib.set_ready_flag.argtypes = []
 lib.set_ready_flag.restype = None
 lib.is_finished.argtypes = []
@@ -185,6 +205,32 @@ def test_gemv(
             ctypes.c_int(thread_num),
         )
 
+    def task_value_gemv_half():
+        # Elevate the process to the highest priority(real-time class)
+        sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
+        try:
+            os.sched_setscheduler(0, os.SCHED_FIFO, sched_param)
+        except PermissionError:
+            print("Permission denied. Try running as root.")
+
+        os.sched_setaffinity(0, {5})
+        lib.prepare_value_gemv_half(
+            ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
+            ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
+            ctypes.cast(result_logits.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
+            ctypes.c_int(head_num),
+            ctypes.c_int(batch_size),
+            ctypes.c_int(K),
+            ctypes.c_int(Dh),
+            ctypes.c_int(kv_head_offset),
+            ctypes.c_int(kv_batch_offset),
+            ctypes.c_int(logits_queries_head_offset),
+            ctypes.c_int(logits_queries_batch_offset),
+            ctypes.c_int(out_logits_head_offset),
+            ctypes.c_int(out_logits_batch_offset),
+            ctypes.c_int(thread_num),
+        )
+
     def task_key_gemv_half():
         # Elevate the process to the highest priority(real-time class)
         sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
@@ -222,8 +268,8 @@ def test_gemv(
     else:
         if values_keys.dtype == torch.float:
             thread = threading.Thread(target=task_value_gemv)
-        # else:
-        #     thread = threading.Thread(target=task_value_gemv_half)
+        else:
+            thread = threading.Thread(target=task_value_gemv_half)
     thread.start()
     ######
 
@@ -255,7 +301,7 @@ def aligned_array(shape, dtype, alignment=64):
     return np.ndarray(shape, dtype=dtype, buffer=aligned_buffer)
 
 
-def test_value_gemv(batch_size, K, thread_num):
+def test_value_gemv(batch_size, K, thread_num, dtype=torch.float16):
     # Elevate the process to the highest priority(real-time class)
     sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
     try:
@@ -277,35 +323,38 @@ def test_value_gemv(batch_size, K, thread_num):
     head_num = 32
     Dh = 128
 
+    ######
     # Memory-aligned allocation using Torch
-    # values = torch.rand(head_num * batch_size * K * Dh, dtype=torch.float32)
-    # logits = torch.rand(head_num * batch_size * K, dtype=torch.float32)
-    # result = torch.zeros(head_num * batch_size * Dh, dtype=torch.float32)
+    values = torch.rand(head_num * batch_size * K * Dh, dtype=dtype)
+    logits = torch.rand(head_num * batch_size * K, dtype=dtype)
+    result = torch.zeros(head_num * batch_size * Dh, dtype=dtype)
 
-    # Check memory alignment (optional)
-    # assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
-    # assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
-    # assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
+    # Check memory alignment
+    assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
+    assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+    assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
+    ######
 
-    # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
-    values = aligned_array(
-        (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
-    )
-    logits = aligned_array(
-        (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
-    )
-    result = aligned_array(
-        (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
-    )
-
+    ######
+    # # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
+    # values = aligned_array(
+    #     (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+    # )
+    # logits = aligned_array(
+    #     (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+    # )
+    # result = aligned_array(
+    #     (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+    # )
     # # Fill values and logits with random values
-    values[:] = np.random.rand(*values.shape).astype(np.float32)
-    logits[:] = np.random.rand(*logits.shape).astype(np.float32)
+    # values[:] = np.random.rand(*values.shape).astype(np.float32)
+    # logits[:] = np.random.rand(*logits.shape).astype(np.float32)
 
-    # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
-    assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
-    assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
-    assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
+    # # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
+    # assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
+    # assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
+    # assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
+    ######
 
     kv_head_offset = batch_size * K * Dh
     kv_batch_offset = K * Dh
@@ -332,31 +381,34 @@ def test_value_gemv(batch_size, K, thread_num):
             out_logits_batch_offset,
             False,
         )
-        # values = torch.rand(head_num * batch_size * K * Dh, dtype=torch.float32)
-        # logits = torch.rand(head_num * batch_size * K, dtype=torch.float32)
-        # result = torch.zeros(head_num * batch_size * Dh, dtype=torch.float32)
-        # assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
-        # assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
-        # assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
-        # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
-        values = aligned_array(
-            (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
-        )
-        logits = aligned_array(
-            (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
-        )
-        result = aligned_array(
-            (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
-        )
+        ######
+        # Torch version
+        values = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
+        logits = torch.rand(head_num * batch_size, 1, K, dtype=dtype)
+        result = torch.zeros(head_num * batch_size, 1, Dh, dtype=dtype)
+        assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
+        assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+        assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
+        ######
 
-        # # Fill values and logits with random values
-        values[:] = np.random.rand(*values.shape).astype(np.float32)
-        logits[:] = np.random.rand(*logits.shape).astype(np.float32)
-
-        # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
-        assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
-        assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
-        assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
+        ######
+        # # Numpy version
+        # values = aligned_array(
+        #     (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+        # )
+        # logits = aligned_array(
+        #     (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+        # )
+        # result = aligned_array(
+        #     (head_num, batch_size, K, Dh), dtype=np.float32, alignment=64
+        # )
+        # values[:] = np.random.rand(*values.shape).astype(np.float32)
+        # logits[:] = np.random.rand(*logits.shape).astype(np.float32)
+        # # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
+        # assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
+        # assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
+        # assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
+        ######
 
 
 def _attention_weights(q, k, mask, b, src_s, n_head):
@@ -429,7 +481,16 @@ def test_key_gemv(batch_size, K, thread_num, dtype=torch.float16):
 ###############################################
 # Test for Softmax
 def test_softmax_threads(
-    qk, max_values, head_num, batch_size, seq_len, head_offset, batch_offset, thread_num
+    qk,
+    max_values,
+    sums_quant,
+    sums_topk,
+    head_num,
+    batch_size,
+    seq_len,
+    head_offset,
+    batch_offset,
+    thread_num,
 ):
     ##############################
     # Tasks for each thread
@@ -445,11 +506,13 @@ def test_softmax_threads(
         lib.prepare_softmax(
             ctypes.cast(qk.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(max_values.data_ptr(), ctypes.POINTER(ctypes.c_float)),
-            ctypes.c_uint(seq_len),
-            ctypes.c_uint(head_num),
-            ctypes.c_uint(batch_size),
-            ctypes.c_uint(head_offset),
-            ctypes.c_uint(batch_offset),
+            ctypes.cast(sums_quant.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            ctypes.cast(sums_topk.data_ptr(), ctypes.POINTER(ctypes.c_float)),
+            ctypes.c_int(seq_len),
+            ctypes.c_int(head_num),
+            ctypes.c_int(batch_size),
+            ctypes.c_int(head_offset),
+            ctypes.c_int(batch_offset),
             ctypes.c_int(thread_num),
         )
 
@@ -508,8 +571,10 @@ def test_softmax(batch_size, K, thread_num, dtype=torch.float):
     head_num = 32
     seq_len = 1024
 
-    head_offset = batch_size * seq_len
-    batch_offset = seq_len
+    # batch_size = 1
+
+    head_offset = batch_size * K
+    batch_offset = K
 
     qk = torch.rand(head_num, batch_size, seq_len, dtype=dtype)
 
@@ -519,33 +584,56 @@ def test_softmax(batch_size, K, thread_num, dtype=torch.float):
     logits_from_torch = F.softmax(qk, dim=-1)
     end_torch = time.perf_counter_ns()
 
-    print(f"Logits: {logits_from_torch.shape}")
     duration = (end_torch - start_torch) / 1e3
-    print(f"Took {duration} microseconds")
+    # print(f"Took {duration} microseconds")
 
-    # [x] Calculate max before Softmax
+    # [ ] Select top-k indices
+    true_logits, topk_indices = logits_from_torch.topk(K, dim=-1, sorted=False)
+    qk_topk = torch.gather(qk, dim=-1, index=topk_indices)
+
+    # [x] Calculate max_values and sums_quant before Softmax
     max_values, max_indices = torch.max(qk, dim=-1, keepdim=True)
+    qk_exp = torch.exp(qk - max_values)
+    sums_quant = torch.sum(qk_exp, dim=-1, keepdim=True)
+    logits_tmp = qk_exp / sums_quant
+    logits_tmp_topk, _ = logits_tmp.topk(K, dim=-1, sorted=False)
+
+    sums_topk = torch.empty_like(sums_quant)
+    # DEBUG
+    # print(f"qk_exp: {qk_exp.shape}")
+    # print(qk_exp[0])
+    # print(f"sums_quant: {sums_quant.shape}")
+    # print(sums_quant)
 
     # [x] Run CPU Softmax
     test_softmax_threads(
-        qk,
+        qk_topk,
         max_values,
+        sums_quant,
+        sums_topk,
         head_num,
         batch_size,
-        seq_len,
+        K,
         head_offset,
         batch_offset,
         thread_num,
     )
+    # DEBUG
+    print(f"logits_tmp_topk: {logits_tmp_topk.shape}")
+    print(logits_tmp_topk[0])
+    print(f"true_logits: {true_logits.shape}")
+    print(true_logits[0])
+    print(f"qk_topk: {qk_topk.shape}")
+    print(qk_topk[0])
 
     # [x] Calculate the MSE and MAE
-    # Calculate MSE
-    mse = torch.mean((logits_from_torch - qk) ** 2)
-    print("Mean Squared Error (MSE):", mse.item())
+    # # Calculate MSE
+    # mse = torch.mean((logits_from_torch - qk) ** 2)
+    # print("Mean Squared Error (MSE):", mse.item())
 
-    # Calculate MAE
-    mae = torch.mean(torch.abs(logits_from_torch - qk))
-    print("Mean Absolute Error (MAE):", mae.item())
+    # # Calculate MAE
+    # mae = torch.mean(torch.abs(logits_from_torch - qk))
+    # print("Mean Absolute Error (MAE):", mae.item())
 
 
 ###############################################
@@ -579,7 +667,9 @@ def main():
         if args.key_gemv:
             test_key_gemv(args.batch_size, args.K, args.thread_num, dtype=torch.float16)
         else:
-            test_value_gemv(args.batch_size, args.K, args.thread_num)
+            test_value_gemv(
+                args.batch_size, args.K, args.thread_num, dtype=torch.float16
+            )
 
 
 if __name__ == "__main__":
