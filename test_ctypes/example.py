@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import argparse
 import os
 
-ITER = 10
+ITER = 50
 
 
 def aligned_array(size, dtype=np.float16, alignment=32):
@@ -394,6 +394,7 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
     out_logits_head_offset = batch_size * Dh
     out_logits_batch_offset = Dh
 
+    total_sec = 0
     for _ in range(ITER):
         nano_sec = test_gemv(
             batch_size,
@@ -507,9 +508,9 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
     sec = total_sec / 1e9
     throughput = (total_bytes / 1e9) / sec
 
-    print(f"Took {micro_sec:.2f} microseconds")
+    print(f"{micro_sec:.2f} microseconds")
     # print(f"Total bytes: {total_bytes / 1e9} GB")
-    print(f"Throughput(GB/s): {throughput:.2f}")
+    print(f"{throughput:.2f} GB/s")
     ######
 
     # [x] Check the correctness
@@ -713,9 +714,9 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
     sec = total_sec / 1e9
     throughput = (total_bytes / 1e9) / sec
 
-    print(f"Took {micro_sec:.2f} microseconds")
+    print(f"{micro_sec:.2f} microseconds")
     # print(f"Total bytes: {total_bytes / 1e9} GB")
-    print(f"Throughput(GB/s): {throughput:.2f}")
+    print(f"{throughput:.2f} GB/s")
     ######
 
     # [x] Check the correctness
