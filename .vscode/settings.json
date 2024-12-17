@@ -75,5 +75,6 @@
         "semaphore": "cpp",
         "span": "cpp"
     },
-    "cmake.sourceDirectory": "/home2/jaehoon/CPU_attention/integration"
+    "cmake.sourceDirectory": "/home2/jaehoon/CPU_attention/integration",
+    "makefile.configureOnOpen": false
 }

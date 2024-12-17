@@ -2230,7 +2230,7 @@ void key_gemv_threaded_half(
     std::atomic<bool> *finished_flag, std::atomic<bool> *stop_flag,
     std::atomic<int> *iter_num, double *end_time) {
   const int last_case = K % 16;
-  printf("Last: %d", last_case);
+  //   printf("Last: %d", last_case);
 
   struct timespec _end, _start;
   // float *keys;
@@ -2522,7 +2522,7 @@ void key_gemv_threaded(
     std::atomic<bool> *finished_flag, std::atomic<bool> *stop_flag,
     std::atomic<int> *iter_num, double *end_time) {
   const int last_case = K % 16;
-  printf("Last: %d", last_case);
+  //   printf("Last: %d", last_case);
 
   struct timespec _end, _start;
   // float *keys;

@@ -3410,7 +3410,6 @@ void prepare_key_gemv_half(
                                 : start_idx + work_per_thread;
     int cpu_id = t + acc;
     acc += 1;
-    // int cpu_id = t;
     threads.emplace_back(key_gemv_threaded_half, keys, queries, logits,
                          head_num, batch_size, K, Dh, keys_head_offset,
                          keys_batch_offset, queries_head_offset,

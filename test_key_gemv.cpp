@@ -137,8 +137,10 @@ void key_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   std::vector<std::thread> threads;
   int start_idx = 0;
   int end_idx = 0;
-
+  int acc = 0;
   for (int t = 0; t < num_threads; ++t) {
+    int cpu_id = t + acc;
+    acc += 1;
     start_idx = end_idx;
     end_idx = remains > 0 ? start_idx + work_per_thread + 1
                           : start_idx + work_per_thread;
@@ -146,14 +148,18 @@ void key_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
 
     if constexpr (std::is_same<T, half>::value) {
       threads.emplace_back(
-          (std::is_same<T, half>::value ? key_gemv_threaded_half
-                                        : key_gemv_threaded),
-          keys, queries, logits, num_head, batch_size, K, Dh, keys_head_offset,
-          keys_batch_offset, queries_head_offset, queries_batch_offset,
-          logits_head_offset, logits_batch_offset, t, num_threads, start_idx,
-          end_idx, &ready_flag, &finished_flags[t], &stop_flag, &iter_num,
-          &end_times[t]);
+          key_gemv_threaded_half, keys, queries, logits, num_head, batch_size,
+          K, Dh, keys_head_offset, keys_batch_offset, queries_head_offset,
+          queries_batch_offset, logits_head_offset, logits_batch_offset, t,
+          num_threads, start_idx, end_idx, &ready_flag, &finished_flags[t],
+          &stop_flag, &iter_num, &end_times[t]);
     } else {
+      threads.emplace_back(
+          key_gemv_threaded, keys, queries, logits, num_head, batch_size, K, Dh,
+          keys_head_offset, keys_batch_offset, queries_head_offset,
+          queries_batch_offset, logits_head_offset, logits_batch_offset, t,
+          num_threads, start_idx, end_idx, &ready_flag, &finished_flags[t],
+          &stop_flag, &iter_num, &end_times[t]);
     }
 
     // // Get the native handle for the created thread
@@ -173,14 +179,14 @@ void key_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     cpu_set_t cpuset;
     CPU_ZERO(&cpuset);
     // Method1
-    if (t > 23) {
-      // int id = 48 + (t - 23);
-      CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
-    } else {
-      CPU_SET(t, &cpuset);  // Bind to specific CPU core
-    }
+    // if (t > 23) {
+    //   // int id = 48 + (t - 23);
+    //   CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
+    // } else {
+    //   CPU_SET(t, &cpuset);  // Bind to specific CPU core
+    // }
     // Method2
-    // CPU_SET(t, &cpuset);  // Bind to specific CPU core
+    CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
 
     ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
     if (ret != 0) {
@@ -237,11 +243,11 @@ void key_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     acc_time_sec += cur_time_sec;
 
     usleep(10);
-    for (int t = 0; t < num_threads; ++t)
-      printf("CPU %d: %f\n", t, end_times[t]);
-
-    std::sort(end_times, end_times + num_threads);
-    printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
+    // DEBUG: Check the duration variance between threads
+    // for (int t = 0; t < num_threads; ++t)
+    //   printf("CPU %d: %f\n", t, end_times[t]);
+    // std::sort(end_times, end_times + num_threads);
+    // printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
 
     // Calculate MSE and MAE
     float mse = (std::is_same<T, float>::value)
@@ -273,30 +279,22 @@ void key_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
   double flops = 2.0 * Dh * K * num_head * batch_size;
   double gflops = flops / total_time_sec / 1e9;
   double gflops_trusted = flops / total_time_sec_trusted / 1e9;
-  double total_bytes =
-      (Dh * K * num_head * batch_size + K * num_head * batch_size) * sizeof(T);
-  double throughput = (total_bytes / total_time_sec) / 1e9;
 
+  int const num_keys = Dh * K * num_head * batch_size;
+  int const num_logits = K * num_head * batch_size;
+  double total_bytes =
+      (Dh * K * num_head * batch_size + K * num_head * batch_size) *
+      sizeof(half);
+  double throughput = (total_bytes / 1e9) / total_time_sec;
+
+  printf("Number of elements in Keys: %d\n", num_keys);
+  printf("Number of elements in Logits: %d\n", num_logits);
   std::cout << "Elapsed time: " << total_time_sec * 1e6 << " microseconds"
             << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;
   std::cout << "Total Bytes: " << total_bytes << std::endl;
   std::cout << "Throughput(GB/s): " << throughput << std::endl;
   printf("\n\n");
-
-  // DEBUGGING
-  // const int check_head_idx = 0;
-  // const int check_batch_idx = 0;
-  // for (int k = 0; k < K; ++k) {
-  //   printf("logits_trusted[%d][%d][%d]: %f\n", check_head_idx,
-  //   check_batch_idx,
-  //          k,
-  //          logits_trusted[check_head_idx * logits_head_offset +
-  //                         check_batch_idx * logits_batch_offset + k]);
-  //   printf("logits[%d][%d][%d]: %f\n", check_head_idx, check_batch_idx, k,
-  //          logits[0][check_head_idx * logits_head_offset +
-  //                    check_batch_idx * logits_batch_offset + k]);
-  // }
 
   // Free the allocated memory
   for (int i = 0; i < ITER; ++i) {

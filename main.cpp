@@ -51,7 +51,8 @@ int main(int argc, char *argv[]) {
   const bool is_key_gemv = bool(atoi(argv[4]));
 
   size_t Dh = 128, iteration = 51;
-  size_t num_head = is_key_gemv ? 4 : 32;
+  // size_t num_head = is_key_gemv ? 4 : 32;
+  size_t num_head = 32;
   if (is_key_gemv)
     printf("Key GEMV\n");
   else

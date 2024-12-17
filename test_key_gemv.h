@@ -265,11 +265,11 @@ void key_gemv_eval(const int K, const int Dh, const int num_head,
     acc_time_sec += cur_time_sec;
 
     usleep(10);
-    for (int t = 0; t < num_threads; ++t)
-      printf("CPU %d: %f\n", t, end_times[t]);
-
-    std::sort(end_times, end_times + num_threads);
-    printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
+    // DEBUG: Check the duration variance between threads
+    // for (int t = 0; t < num_threads; ++t)
+    //   printf("CPU %d: %f\n", t, end_times[t]);
+    // std::sort(end_times, end_times + num_threads);
+    // printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
 
     // Calculate MSE and MAE
     float mse, mae;
@@ -564,11 +564,11 @@ void key_gemv_eval<std::uint16_t>(
     acc_time_sec += cur_time_sec;
 
     usleep(10);
-    for (int t = 0; t < num_threads; ++t)
-      printf("CPU %d: %f\n", t, end_times[t]);
-
-    std::sort(end_times, end_times + num_threads);
-    printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
+    // DEBUG: Check the duration variance between threads
+    // for (int t = 0; t < num_threads; ++t)
+    //   printf("CPU %d: %f\n", t, end_times[t]);
+    // std::sort(end_times, end_times + num_threads);
+    // printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
 
     // Calculate MSE and MAE
     float mse, mae;
@@ -579,9 +579,8 @@ void key_gemv_eval<std::uint16_t>(
                              num_head * batch_size * K);
 
     // DEBUGGING
-    // printf("Current elapsed time: %f\n", cur_time_sec);
-    std::cout << "Mean Squared Error: " << mse << std::endl;
-    std::cout << "Maximum Absolute Error: " << mae << std::endl;
+    // std::cout << "Mean Squared Error: " << mse << std::endl;
+    // std::cout << "Maximum Absolute Error: " << mae << std::endl;
     // printf("Start elapsed time: %f\n", start.tv_sec + start.tv_nsec / 1e9);
     // printf("End elapsed time: %f\n", end.tv_sec + end.tv_nsec / 1e9);
     // printf("Acc elapsed time: %f\n", acc_time_sec);
@@ -598,31 +597,32 @@ void key_gemv_eval<std::uint16_t>(
   double gflops = flops / total_time_sec / 1e9;
   double gflops_trusted = flops / total_time_sec_trusted / 1e9;
   double total_bytes =
-      (Dh * K * num_head * batch_size + K * num_head * batch_size) *
+      (Dh * K * num_head * batch_size + Dh * num_head * batch_size) *
       sizeof(half);
   double throughput = (total_bytes / total_time_sec) / 1e9;
 
   std::cout << "Elapsed time: " << total_time_sec * 1e6 << " microseconds"
             << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;
-  std::cout << "Total Bytes: " << total_bytes << std::endl;
+  std::cout << "Total Bytes: " << total_bytes / 1e9 << std::endl;
   std::cout << "Throughtput(GB/s): " << throughput << std::endl;
   printf("\n\n");
 
   // DEBUGGING
-  const int check_head_idx = 0;
-  const int check_batch_idx = 0;
-  printf("logits_trusted[%d][%d]:\n", check_head_idx, check_batch_idx);
-  for (int k = 0; k < K; ++k) {
-    printf("%f ", logits_trusted[check_head_idx * logits_head_offset +
-                                 check_batch_idx * logits_batch_offset + k]);
-  }
-  printf("\nlogits[%d][%d]:\n", check_head_idx, check_batch_idx);
-  for (int k = 0; k < K; ++k) {
-    printf("%f ",
-           __half2float(logits[0][check_head_idx * logits_head_offset +
-                                  check_batch_idx * logits_batch_offset + k]));
-  }
+  // const int check_head_idx = 0;
+  // const int check_batch_idx = 0;
+  // printf("logits_trusted[%d][%d]:\n", check_head_idx, check_batch_idx);
+  // for (int k = 0; k < K; ++k) {
+  //   printf("%f ", logits_trusted[check_head_idx * logits_head_offset +
+  //                                check_batch_idx * logits_batch_offset + k]);
+  // }
+  // printf("\nlogits[%d][%d]:\n", check_head_idx, check_batch_idx);
+  // for (int k = 0; k < K; ++k) {
+  //   printf("%f ",
+  //          __half2float(logits[0][check_head_idx * logits_head_offset +
+  //                                 check_batch_idx * logits_batch_offset +
+  //                                 k]));
+  // }
 
   // Free the allocated memory
   for (int i = 0; i < ITER; ++i) {

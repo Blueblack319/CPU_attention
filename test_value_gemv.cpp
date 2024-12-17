@@ -226,11 +226,11 @@ void value_gemv_eval(const size_t K, const size_t Dh, const size_t num_head,
     acc_time_sec += cur_time_sec;
 
     usleep(10);
-    for (int t = 0; t < num_threads; ++t)
-      printf("CPU %d: %f\n", t, end_times[t]);
-
-    std::sort(end_times, end_times + num_threads);
-    printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
+    // DEBUG: Check the duration variance between threads
+    // for (int t = 0; t < num_threads; ++t)
+    //   printf("CPU %d: %f\n", t, end_times[t]);
+    // std::sort(end_times, end_times + num_threads);
+    // printf("Variance: %f\n", end_times[num_threads - 1] - end_times[0]);
 
     // Calculate MSE and MAE
     // float mse =
@@ -491,8 +491,6 @@ void value_gemv_eval_half(
 
     cur_time_sec =
         (end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9;
-
-    // acc_time_sec += ii == 0 ? 0 : cur_time_sec;
     acc_time_sec += cur_time_sec;
 
     usleep(10);
@@ -503,9 +501,9 @@ void value_gemv_eval_half(
     float mae = calculate_mae_half(result[ii], result_trusted,
                                    num_head * batch_size * Dh);
     // [x] Debugging for each iteration
-    printf("Current elapsed time: %f\n", cur_time_sec);
-    std::cout << "Mean Squared Error: " << mse << std::endl;
-    std::cout << "Maximum Absolute Error: " << mae << std::endl;
+    // printf("Current elapsed time: %f\n", cur_time_sec);
+    // std::cout << "Mean Squared Error: " << mse << std::endl;
+    // std::cout << "Maximum Absolute Error: " << mae << std::endl;
     // printf("Start elapsed time: %f\n", start.tv_sec + start.tv_nsec / 1e9);
     // printf("End elapsed time: %f\n", end.tv_sec + end.tv_nsec / 1e9);
     // printf("Acc elapsed time: %f\n", acc_time_sec);
@@ -515,7 +513,7 @@ void value_gemv_eval_half(
     //   result[i] = 0.f;
     // }
   }
-  total_time_sec = acc_time_sec / (iteration - 1);
+  total_time_sec = acc_time_sec / iteration;
 
   // Stop the thread pool
   stop_flag.store(true, std::memory_order_release);
@@ -526,19 +524,19 @@ void value_gemv_eval_half(
   double flops = 2.0 * Dh * K * num_head * batch_size;
   double gflops = flops / total_time_sec / 1e9;
   double gflops_trusted = flops / total_time_sec_trusted / 1e9;
+  int const num_keys = Dh * K * num_head * batch_size;
+  int const num_logits = K * num_head * batch_size;
   double total_bytes =
       (Dh * K * num_head * batch_size + K * num_head * batch_size) *
       sizeof(half);
-  double throughput = (total_bytes / total_time_sec) / 1e9;
+  double throughput = (total_bytes / 1e9) / total_time_sec;
 
-  // With functionality
-  // std::cout
-  //     << "==========================My value_gemv=========================="
-  //     << std::endl;
+  printf("Number of elements in Keys: %d\n", num_keys);
+  printf("Number of elements in Logits: %d\n", num_logits);
   std::cout << "Elapsed time: " << total_time_sec * 1e6 << " microseconds"
             << std::endl;
   // std::cout << "GFLOPs: " << gflops << std::endl;
-  // std::cout << "Total Bytes: " << total_bytes << std::endl;
+  std::cout << "Total Bytes: " << total_bytes / 1e9 << " GB" << std::endl;
   std::cout << "Throughput(GB/s): " << throughput << std::endl;
   printf("\n\n");
 
