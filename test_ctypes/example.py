@@ -158,7 +158,7 @@ def test_gemv(
         except PermissionError:
             print("Permission denied. Try running as root.")
 
-        os.sched_setaffinity(0, {5})
+        # os.sched_setaffinity(0, {5})
         lib.prepare_value_gemv(
             # ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             # ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -187,7 +187,7 @@ def test_gemv(
         except PermissionError:
             print("Permission denied. Try running as root.")
 
-        os.sched_setaffinity(0, {5})
+        # os.sched_setaffinity(0, {5})
         lib.prepare_key_gemv(
             ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -213,7 +213,7 @@ def test_gemv(
         except PermissionError:
             print("Permission denied. Try running as root.")
 
-        os.sched_setaffinity(0, {5})
+        # os.sched_setaffinity(0, {5})
         if values_keys.dtype == np.float16:
             lib.prepare_value_gemv_half(
                 values_keys.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16)),
@@ -257,7 +257,7 @@ def test_gemv(
         except PermissionError:
             print("Permission denied. Try running as root.")
 
-        os.sched_setaffinity(0, {5})
+        # os.sched_setaffinity(0, {71})
 
         if values_keys.dtype == np.float16:
             lib.prepare_key_gemv_half(
@@ -311,51 +311,14 @@ def test_gemv(
 
     time.sleep(1)
 
-    print("=====================================================")
     start_t = time.perf_counter_ns()
     lib.set_ready_flag()
     lib.wait_finished()
     end_t = time.perf_counter_ns()
 
-    # Performance
-    if isinstance(values_keys, torch.Tensor):
-        print(f"Number of elements in Keys: {values_keys.element_size()}")
-        print(f"Number of elements in Logits: {logits_queries.element_size()}")
-        print(f"Keys element size: {values_keys.element_size()}")
-        print(f"Logits element size: {logits_queries.element_size()}")
-        total_bytes = (
-            values_keys.element_size() * values_keys.nelement()
-            + logits_queries.element_size() * logits_queries.nelement()
-        )
-    else:
-        print(f"Number of elements in Keys: {values_keys.size}")
-        print(f"Number of elements in Logits: {logits_queries.size}")
-        print(f"Keys element size: {values_keys.itemsize}")
-        print(f"Logits element size: {logits_queries.itemsize}")
-        total_bytes = (
-            values_keys.size * values_keys.itemsize
-            + logits_queries.size * logits_queries.itemsize
-        )
-
-    if is_key_gemv:
-        total_bytes_naive = (
-            head_num * batch_size * K * Dh + head_num * batch_size * Dh
-        ) * 2
-    else:
-        total_bytes_naive = (
-            head_num * batch_size * K * Dh + head_num * batch_size * K
-        ) * 2
-    nano_sec = end_t - start_t
-    micro_sec = nano_sec / 1e3
-    sec = nano_sec / 1e9
-    throughput = (total_bytes / 1e9) / sec
-
-    print(f"Took {micro_sec} microseconds")
-    print(f"Total bytes: {total_bytes / 1e9} GB")
-    print(f"Naive Total bytes: {total_bytes_naive / 1e9} GB")
-    print(f"Throughput(GB/s): {throughput}")
     lib.clear_flags()
     thread.join()
+    return end_t - start_t
 
 
 def aligned_array(shape, dtype, alignment=64):
@@ -388,6 +351,10 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
 
     head_num = 32
     Dh = 128
+    print("Value GEMV FP16")
+    print(
+        f"BS: {batch_size}, K: {K}, Dh: {Dh}, head_num: {head_num}, thread_num: {thread_num}"
+    )
 
     # Allocate memory
     if dtype == np.float16:
@@ -428,7 +395,7 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
     out_logits_batch_offset = Dh
 
     for _ in range(ITER):
-        test_gemv(
+        nano_sec = test_gemv(
             batch_size,
             K,
             thread_num,
@@ -445,12 +412,43 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
             out_logits_batch_offset,
             False,
         )
-        # [x] Check the functionality
+        total_sec = total_sec + nano_sec
+        ##########################################
+        # # Performance and Correctness
+        # # [x] Performance
+        # print("=====================================================")
+        # if isinstance(values, torch.Tensor):
+        #     print(f"Number of elements in Keys: {values.element_size()}")
+        #     print(f"Number of elements in Logits: {logits.element_size()}")
+        #     print(f"Keys element size: {values.element_size()}")
+        #     print(f"Logits element size: {logits.element_size()}")
+        #     total_bytes = (
+        #         values.element_size() * values.nelement()
+        #         + logits.element_size() * logits.nelement()
+        #     )
+        # else:
+        #     print(f"Number of elements in Keys: {values.size}")
+        #     print(f"Number of elements in Logits: {logits.size}")
+        #     print(f"Keys element size: {values.itemsize}")
+        #     print(f"Logits element size: {logits.itemsize}")
+        #     total_bytes = values.size * values.itemsize + logits.size * logits.itemsize
+
+        # micro_sec = nano_sec / 1e3
+        # sec = nano_sec / 1e9
+        # throughput = (total_bytes / 1e9) / sec
+
+        # print(f"Took {micro_sec} microseconds")
+        # print(f"Total bytes: {total_bytes / 1e9} GB")
+        # print(f"Throughput(GB/s): {throughput}")
+        # ######
+
+        # # [x] Check the functionality
         # attn_out = torch.bmm(logits.to(device="cuda"), values.to(device="cuda"))
-        # print(f"result: {result.shape}")
-        # print(result[0])
-        # print(f"attn_out: {attn_out.shape}")
-        # print(attn_out[0])
+        # mse = torch.mean((result - attn_out.to(device="cpu")) ** 2)
+        # mae = torch.mean(abs(result - attn_out.to(device="cpu")))
+        # print(f"MSE: {mse}")
+        # print(f"MAE: {mae}")
+        ##########################################
 
         if dtype == np.float16:
             # Numpy version
@@ -477,6 +475,57 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
             assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
             assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
             assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
+        # OS-specific cache flush (Linux example)
+        if os.name == "posix":
+            os.system(
+                "sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null 2>&1"
+            )
+    total_sec = total_sec / ITER
+    ##########################################
+    # Performance and Correctness
+    # [x] Performance
+    print("=====================================================")
+    if isinstance(values, torch.Tensor):
+        # DEBUG
+        # print(f"Number of elements in Keys: {values.element_size()}")
+        # print(f"Number of elements in Logits: {logits.element_size()}")
+        # print(f"Keys element size: {values.element_size()}")
+        # print(f"Logits element size: {logits.element_size()}")
+        total_bytes = (
+            values.element_size() * values.nelement()
+            + logits.element_size() * logits.nelement()
+        )
+    else:
+        # DEBUG
+        # print(f"Number of elements in Keys: {values.size}")
+        # print(f"Number of elements in Logits: {logits.size}")
+        # print(f"Keys element size: {values.itemsize}")
+        # print(f"Logits element size: {logits.itemsize}")
+        total_bytes = values.size * values.itemsize + logits.size * logits.itemsize
+
+    micro_sec = total_sec / 1e3
+    sec = total_sec / 1e9
+    throughput = (total_bytes / 1e9) / sec
+
+    print(f"Took {micro_sec:.2f} microseconds")
+    # print(f"Total bytes: {total_bytes / 1e9} GB")
+    print(f"Throughput(GB/s): {throughput:.2f}")
+    ######
+
+    # [x] Check the correctness
+    # values = values.transpose(1, 2)
+    # logits = logits.to("cuda")
+    # values = values.to("cuda")
+    # attn_weights = _attention_weights(logits, values, None, batch_size, K, head_num)
+    # attn_weights = attn_weights.reshape(head_num, batch_size, K)
+    # result = result.reshape(head_num, batch_size, K)
+
+    # mse = torch.mean((result - attn_weights.to(device="cpu")) ** 2)
+    # mae = torch.mean(abs(result - attn_weights.to(device="cpu")))
+    # print(f"MSE: {mse}")
+    # print(f"MAE: {mae}")
+    ######
+    ##########################################
 
 
 def _attention_weights(q, k, mask, b, src_s, n_head):
@@ -504,11 +553,11 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
     except PermissionError:
         print("Permission denied. Try running as root.")
 
-    head_num = 32
+    head_num = 4
     Dh = 128
-    print(f"Key GEMV")
+    print(f"Key GEMV FP16")
     print(
-        f"BS: {batch_size}, K: {K}, Dh: {Dh}, head_num: {head_num}, thread_num: {thread_num}\n"
+        f"BS: {batch_size}, K: {K}, Dh: {Dh}, head_num: {head_num}, thread_num: {thread_num}"
     )
 
     kv_head_offset = batch_size * K * Dh
@@ -544,8 +593,9 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
         assert queries.data_ptr() % 64 == 0, "queries is not 64-byte aligned!"
         assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
 
+    total_sec = 0
     for _ in range(ITER):
-        test_gemv(
+        nano_sec = test_gemv(
             batch_size,
             K,
             thread_num,
@@ -562,16 +612,50 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
             logits_batch_offset,
             True,
         )
-        # [x] Check the correctness
+        total_sec = total_sec + nano_sec
+        ##########################################
+        # # [x] Performance
+        # print("=====================================================")
+        # if isinstance(keys, torch.Tensor):
+        #     print(f"Number of elements in Keys: {keys.element_size()}")
+        #     print(f"Number of elements in Logits: {queries.element_size()}")
+        #     print(f"Keys element size: {keys.element_size()}")
+        #     print(f"Logits element size: {queries.element_size()}")
+        #     total_bytes = (
+        #         keys.element_size() * keys.nelement()
+        #         + queries.element_size() * queries.nelement()
+        #     )
+        # else:
+        #     print(f"Number of elements in Keys: {keys.size}")
+        #     print(f"Number of elements in Logits: {queries.size}")
+        #     print(f"Keys element size: {keys.itemsize}")
+        #     print(f"Logits element size: {queries.itemsize}")
+        #     total_bytes = keys.size * keys.itemsize + queries.size * queries.itemsize
+
+        # micro_sec = nano_sec / 1e3
+        # sec = nano_sec / 1e9
+        # throughput = (total_bytes / 1e9) / sec
+
+        # print(f"Took {micro_sec} microseconds")
+        # print(f"Total bytes: {total_bytes / 1e9} GB")
+        # print(f"Throughput(GB/s): {throughput}")
+        # ######
+
+        # # [x] Check the correctness
         # keys = keys.transpose(1, 2)
         # queries = queries.to("cuda")
         # keys = keys.to("cuda")
         # attn_weights = _attention_weights(queries, keys, None, batch_size, K, head_num)
         # attn_weights = attn_weights.reshape(head_num, batch_size, K)
-        # attn_weights_max, _ = torch.max(attn_weights, dim=2, keepdim=True)
-        # logits_max, _ = torch.max(logits, dim=2, keepdim=True)
-        # print(f"logits: {logits[0][0]}")
-        # print(f"attn_weights: {attn_weights[0][0]}")
+        # logits = logits.reshape(head_num, batch_size, K)
+
+        # mse = torch.mean((logits - attn_weights.to(device="cpu")) ** 2)
+        # mae = torch.mean(abs(logits - attn_weights.to(device="cpu")))
+        # # print(f"MSE: {mse}")
+        # # print(f"MAE: {mae}")
+        # ######
+        ##########################################
+
         if dtype == np.float16:
             # Numpy version
             keys = aligned_array(
@@ -597,6 +681,57 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
             assert keys.data_ptr() % 64 == 0, "keys is not 64-byte aligned!"
             assert queries.data_ptr() % 64 == 0, "queries is not 64-byte aligned!"
             assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+        # OS-specific cache flush (Linux example)
+        if os.name == "posix":
+            os.system(
+                "sync; echo 3 | sudo tee /proc/sys/vm/drop_caches > /dev/null 2>&1"
+            )
+    total_sec = total_sec / ITER
+    ##########################################
+    # Performance and Correctness
+    # [x] Performance
+    print("=====================================================")
+    if isinstance(keys, torch.Tensor):
+        # DEBUG
+        # print(f"Number of elements in Keys: {keys.element_size()}")
+        # print(f"Number of elements in Logits: {queries.element_size()}")
+        # print(f"Keys element size: {keys.element_size()}")
+        # print(f"Logits element size: {queries.element_size()}")
+        total_bytes = (
+            keys.element_size() * keys.nelement()
+            + queries.element_size() * queries.nelement()
+        )
+    else:
+        # DEBUG
+        # print(f"Number of elements in Keys: {keys.size}")
+        # print(f"Number of elements in Logits: {queries.size}")
+        # print(f"Keys element size: {keys.itemsize}")
+        # print(f"Logits element size: {queries.itemsize}")
+        total_bytes = keys.size * keys.itemsize + queries.size * queries.itemsize
+
+    micro_sec = total_sec / 1e3
+    sec = total_sec / 1e9
+    throughput = (total_bytes / 1e9) / sec
+
+    print(f"Took {micro_sec:.2f} microseconds")
+    # print(f"Total bytes: {total_bytes / 1e9} GB")
+    print(f"Throughput(GB/s): {throughput:.2f}")
+    ######
+
+    # [x] Check the correctness
+    # keys = keys.transpose(1, 2)
+    # queries = queries.to("cuda")
+    # keys = keys.to("cuda")
+    # attn_weights = _attention_weights(queries, keys, None, batch_size, K, head_num)
+    # attn_weights = attn_weights.reshape(head_num, batch_size, K)
+    # logits = logits.reshape(head_num, batch_size, K)
+
+    # mse = torch.mean((logits - attn_weights.to(device="cpu")) ** 2)
+    # mae = torch.mean(abs(logits - attn_weights.to(device="cpu")))
+    # print(f"MSE: {mse}")
+    # print(f"MAE: {mae}")
+    ######
+    ##########################################
 
 
 ###############################################
@@ -623,7 +758,7 @@ def test_softmax_threads(
         except PermissionError:
             print("Permission denied. Try running as root.")
 
-        os.sched_setaffinity(0, {5})
+        # os.sched_setaffinity(0, {5})
         lib.prepare_softmax(
             ctypes.cast(qk.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(max_values.data_ptr(), ctypes.POINTER(ctypes.c_float)),
@@ -807,5 +942,5 @@ def main():
 
 
 if __name__ == "__main__":
-    os.sched_setaffinity(0, {3})
+    # os.sched_setaffinity(0, {71})
     main()

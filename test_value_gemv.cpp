@@ -524,14 +524,15 @@ void value_gemv_eval_half(
   double flops = 2.0 * Dh * K * num_head * batch_size;
   double gflops = flops / total_time_sec / 1e9;
   double gflops_trusted = flops / total_time_sec_trusted / 1e9;
-  int const num_keys = Dh * K * num_head * batch_size;
+  int const num_values = Dh * K * num_head * batch_size;
   int const num_logits = K * num_head * batch_size;
   double total_bytes =
       (Dh * K * num_head * batch_size + K * num_head * batch_size) *
       sizeof(half);
   double throughput = (total_bytes / 1e9) / total_time_sec;
 
-  printf("Number of elements in Keys: %d\n", num_keys);
+  printf("Size of each element: %d B", sizeof(half));
+  printf("Number of elements in Keys: %d\n", num_values);
   printf("Number of elements in Logits: %d\n", num_logits);
   std::cout << "Elapsed time: " << total_time_sec * 1e6 << " microseconds"
             << std::endl;

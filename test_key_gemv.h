@@ -303,10 +303,14 @@ void key_gemv_eval(const int K, const int Dh, const int num_head,
   double flops = 2.0 * Dh * K * num_head * batch_size;
   double gflops = flops / total_time_sec / 1e9;
   double gflops_trusted = flops / total_time_sec_trusted / 1e9;
-  double total_bytes =
-      (Dh * K * num_head * batch_size + K * num_head * batch_size) * sizeof(T);
+  int const num_keys = Dh * K * num_head * batch_size;
+  int const num_queries = Dh * num_head * batch_size;
+  double total_bytes = (num_keys + num_queries) * sizeof(T);
   double throughput = (total_bytes / total_time_sec) / 1e9;
 
+  printf("Size of each element: %d B", sizeof(T));
+  printf("Number of elements in Keys: %d\n", num_keys);
+  printf("Number of elements in Logits: %d\n", num_queires);
   std::cout << "Elapsed time: " << total_time_sec * 1e6 << " microseconds"
             << std::endl;
   std::cout << "GFLOPs: " << gflops << std::endl;

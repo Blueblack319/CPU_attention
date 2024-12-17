@@ -3143,15 +3143,26 @@ void prepare_value_gemv(float *values, float *logits, float *result,
       std::cerr << "Failed to set scheduling policy for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
-    // Set CPU affinity
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
-    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
-      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
-                << strerror(ret) << std::endl;
-    }
+    ///////////////////////////////////////////
+    // [x] Set CPU affinity
+    // cpu_set_t cpuset;
+    // CPU_ZERO(&cpuset);
+    // // Method1
+    // if (t > 23) {
+    //   // int id = 48 + (t - 23);
+    //   CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
+    // } else {
+    //   CPU_SET(t, &cpuset);  // Bind to specific CPU core
+    // }
+    // // Method2
+    // CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
+
+    // ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    // if (ret != 0) {
+    //   std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+    //             << strerror(ret) << std::endl;
+    // }
+    ///////////////////////////////////////////
   }
 
   bool all_threads_finished = false;
@@ -3238,15 +3249,26 @@ void prepare_value_gemv_half(
       std::cerr << "Failed to set scheduling policy for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
-    // Set CPU affinity
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
-    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
-      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
-                << strerror(ret) << std::endl;
-    }
+    ///////////////////////////////////////////
+    // [x] Set CPU affinity
+    // cpu_set_t cpuset;
+    // CPU_ZERO(&cpuset);
+    // // Method1
+    // if (t > 23) {
+    //   // int id = 48 + (t - 23);
+    //   CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
+    // } else {
+    //   CPU_SET(t, &cpuset);  // Bind to specific CPU core
+    // }
+    // // Method2
+    // CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
+
+    // ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    // if (ret != 0) {
+    //   std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+    //             << strerror(ret) << std::endl;
+    // }
+    ///////////////////////////////////////////
   }
 
   bool all_threads_finished = false;
@@ -3335,16 +3357,26 @@ void prepare_key_gemv(float *keys, float *queries, float *logits,
       std::cerr << "Failed to set scheduling policy for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
-    // Set CPU affinity
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    // Method1
-    CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
-    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
-      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
-                << strerror(ret) << std::endl;
-    }
+    ///////////////////////////////////////////
+    // [x] Set CPU affinity
+    // cpu_set_t cpuset;
+    // CPU_ZERO(&cpuset);
+    // // Method1
+    // if (t > 23) {
+    //   // int id = 48 + (t - 23);
+    //   CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
+    // } else {
+    //   CPU_SET(t, &cpuset);  // Bind to specific CPU core
+    // }
+    // // Method2
+    // CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
+
+    // ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    // if (ret != 0) {
+    //   std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+    //             << strerror(ret) << std::endl;
+    // }
+    ///////////////////////////////////////////
   }
 
   bool all_threads_finished = false;
@@ -3388,8 +3420,6 @@ void prepare_key_gemv_half(
     int const keys_batch_offset, int const queries_head_offset,
     int const queries_batch_offset, int const logits_head_offset,
     int const logits_batch_offset, int const thread_num) {
-  // printf("Ready Flag: %p\n", &ready_flag);
-  // printf("Done Flag: %p\n", &done_flag);
   // Each thread works on its slice
   int const total_work = head_num * batch_size;
   int const work_per_thread = total_work / thread_num;
@@ -3430,16 +3460,23 @@ void prepare_key_gemv_half(
       std::cerr << "Failed to set scheduling policy for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
-    // Set CPU affinity
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    // Method1
-    CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
-    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
-      std::cerr << "Failed to set CPU affinity for thread " << t << ": "
-                << strerror(ret) << std::endl;
-    }
+    ///////////////////////////////////////////
+    // [x] Set CPU affinity
+    // cpu_set_t cpuset;
+    // CPU_ZERO(&cpuset);
+    // // Method1
+    // cpu_id = (t > 23) ? 48 + (t - 23) : t;
+    // // printf("cpu_id: %d", cpu_id);
+    // CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
+    // // Method2
+    // // CPU_SET(cpu_id, &cpuset);  // Bind to specific CPU core
+
+    // ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    // if (ret != 0) {
+    //   std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+    //             << strerror(ret) << std::endl;
+    // }
+    ///////////////////////////////////////////
   }
 
   bool all_threads_finished = false;
@@ -3538,16 +3575,15 @@ void prepare_softmax(float *qk, const float *max_values,
   std::vector<std::thread> threads;
   int start_idx = 0, end_idx = 0;
   // int acc = 0;
-  for (int tidx = 0; tidx < thread_num; ++tidx) {
+  for (int t = 0; t < thread_num; ++t) {
     start_idx = end_idx;
-    end_idx = tidx < work_remained ? start_idx + work_per_thread + 1
-                                   : start_idx + work_per_thread;
+    end_idx = t < work_remained ? start_idx + work_per_thread + 1
+                                : start_idx + work_per_thread;
 
     threads.emplace_back(softmax_trusted_threads, qk, max_values, sums_quant,
                          sums_topk, seq_len, head_num, batch_size, head_offset,
-                         batch_offset, tidx, thread_num, start_idx, end_idx,
-                         &ready_flag, &finished_flags[tidx],
-                         &thread_results[tidx]);
+                         batch_offset, t, thread_num, start_idx, end_idx,
+                         &ready_flag, &finished_flags[t], &thread_results[t]);
 
     // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
@@ -3559,19 +3595,29 @@ void prepare_softmax(float *qk, const float *max_values,
     // Set the scheduling policy to SCHED_FIFO
     int ret = pthread_setschedparam(nativeHandle, SCHED_FIFO, &param);
     if (ret != 0) {
-      std::cerr << "Failed to set scheduling policy for thread " << tidx << ": "
+      std::cerr << "Failed to set scheduling policy for thread " << t << ": "
                 << strerror(ret) << std::endl;
     }
-    // Set CPU affinity
-    cpu_set_t cpuset;
-    CPU_ZERO(&cpuset);
-    // Method1
-    CPU_SET(tidx + 8, &cpuset);  // Bind to specific CPU core
-    ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
-    if (ret != 0) {
-      std::cerr << "Failed to set CPU affinity for thread " << tidx << ": "
-                << strerror(ret) << std::endl;
-    }
+    ///////////////////////////////////////////
+    // [x] Set CPU affinity
+    // cpu_set_t cpuset;
+    // CPU_ZERO(&cpuset);
+    // // Method1
+    // if (t > 23) {
+    //   // int id = 48 + (t - 23);
+    //   CPU_SET(48 + (t - 23), &cpuset);  // Bind to specific CPU core
+    // } else {
+    //   CPU_SET(t, &cpuset);  // Bind to specific CPU core
+    // }
+    // // Method2
+    // CPU_SET(t + 8, &cpuset);  // Bind to specific CPU core
+
+    // ret = pthread_setaffinity_np(nativeHandle, sizeof(cpu_set_t), &cpuset);
+    // if (ret != 0) {
+    //   std::cerr << "Failed to set CPU affinity for thread " << t << ": "
+    //             << strerror(ret) << std::endl;
+    // }
+    ///////////////////////////////////////////
   }
 
   bool all_threads_finished = false;
