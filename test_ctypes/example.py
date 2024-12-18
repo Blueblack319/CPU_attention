@@ -10,7 +10,7 @@ import torch.nn.functional as F
 import argparse
 import os
 
-ITER = 50
+ITER = 10
 
 
 def aligned_array(size, dtype=np.float16, alignment=32):
@@ -129,7 +129,7 @@ lib.clear_flags.restype = None
 lib.get_duration.argtypes = []
 lib.get_duration.restype = ctypes.c_double
 lib.wait_finished.argtypes = []
-lib.wait_finished.restype = None
+lib.wait_finished.restype = ctypes.c_long
 
 
 def test_gemv(
@@ -137,7 +137,8 @@ def test_gemv(
     K,
     thread_num,
     Dh,
-    head_num,
+    q_head_num,
+    kv_head_num,
     values_keys,
     logits_queries,
     result_logits,
@@ -166,7 +167,8 @@ def test_gemv(
             values_keys.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
             logits_queries.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
             result_logits.ctypes.data_as(ctypes.POINTER(ctypes.c_float)),
-            ctypes.c_int(head_num),
+            ctypes.c_int(q_head_num),
+            ctypes.c_int(kv_head_num),
             ctypes.c_int(batch_size),
             ctypes.c_int(K),
             ctypes.c_int(Dh),
@@ -192,7 +194,8 @@ def test_gemv(
             ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_float)),
             ctypes.cast(result_logits.data_ptr(), ctypes.POINTER(ctypes.c_float)),
-            ctypes.c_int(head_num),
+            ctypes.c_int(q_head_num),
+            ctypes.c_int(kv_head_num),
             ctypes.c_int(batch_size),
             ctypes.c_int(K),
             ctypes.c_int(Dh),
@@ -219,7 +222,8 @@ def test_gemv(
                 values_keys.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16)),
                 logits_queries.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16)),
                 result_logits.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16)),
-                ctypes.c_int(head_num),
+                ctypes.c_int(q_head_num),
+                ctypes.c_int(kv_head_num),
                 ctypes.c_int(batch_size),
                 ctypes.c_int(K),
                 ctypes.c_int(Dh),
@@ -236,7 +240,8 @@ def test_gemv(
                 ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
                 ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
                 ctypes.cast(result_logits.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
-                ctypes.c_int(head_num),
+                ctypes.c_int(q_head_num),
+                ctypes.c_int(kv_head_num),
                 ctypes.c_int(batch_size),
                 ctypes.c_int(K),
                 ctypes.c_int(Dh),
@@ -264,7 +269,8 @@ def test_gemv(
                 values_keys.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16)),
                 logits_queries.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16)),
                 result_logits.ctypes.data_as(ctypes.POINTER(ctypes.c_uint16)),
-                ctypes.c_int(head_num),
+                ctypes.c_int(q_head_num),
+                ctypes.c_int(kv_head_num),
                 ctypes.c_int(batch_size),
                 ctypes.c_int(K),
                 ctypes.c_int(Dh),
@@ -281,7 +287,8 @@ def test_gemv(
                 ctypes.cast(values_keys.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
                 ctypes.cast(logits_queries.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
                 ctypes.cast(result_logits.data_ptr(), ctypes.POINTER(ctypes.c_uint16)),
-                ctypes.c_int(head_num),
+                ctypes.c_int(q_head_num),
+                ctypes.c_int(kv_head_num),
                 ctypes.c_int(batch_size),
                 ctypes.c_int(K),
                 ctypes.c_int(Dh),
@@ -309,16 +316,17 @@ def test_gemv(
     thread.start()
     ######
 
-    time.sleep(1)
+    time.sleep(5)
 
     start_t = time.perf_counter_ns()
     lib.set_ready_flag()
-    lib.wait_finished()
+    duration = lib.wait_finished()
     end_t = time.perf_counter_ns()
 
     lib.clear_flags()
     thread.join()
-    return end_t - start_t
+    # return end_t - start_t
+    return duration
 
 
 def aligned_array(shape, dtype, alignment=64):
@@ -330,7 +338,7 @@ def aligned_array(shape, dtype, alignment=64):
     return np.ndarray(shape, dtype=dtype, buffer=aligned_buffer)
 
 
-def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
+def test_value_gemv(batch_size, K, thread_num, is_gqa, dtype=np.float16):
     # Elevate the process to the highest priority(real-time class)
     sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
     try:
@@ -349,24 +357,25 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
     # except PermissionError:
     #     print("Permission denied. Try running as root.")
 
-    head_num = 32
+    q_head_num = 32
+    kv_head_num = 8 if is_gqa else 32
     Dh = 128
     print("Value GEMV FP16")
     print(
-        f"BS: {batch_size}, K: {K}, Dh: {Dh}, head_num: {head_num}, thread_num: {thread_num}"
+        f"BS: {batch_size}, K: {K}, Dh: {Dh}, q_head_num: {q_head_num}, kv_head_num: {kv_head_num}, thread_num: {thread_num}"
     )
 
     # Allocate memory
     if dtype == np.float16:
         # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
         values = aligned_array(
-            (head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
+            (kv_head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
         )
         logits = aligned_array(
-            (head_num, batch_size, K), dtype=np.float16, alignment=64
+            (q_head_num, batch_size, K), dtype=np.float16, alignment=64
         )
         result = aligned_array(
-            (head_num, batch_size, Dh), dtype=np.float16, alignment=64
+            (q_head_num, batch_size, Dh), dtype=np.float16, alignment=64
         )
         # Fill values and logits with random values
         values[:] = np.random.rand(*values.shape).astype(np.float16)
@@ -378,9 +387,9 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
         assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
     else:
         # Memory-aligned allocation using Torch
-        values = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
-        logits = torch.rand(head_num * batch_size, 1, K, dtype=dtype)
-        result = torch.zeros(head_num * batch_size, 1, Dh, dtype=dtype)
+        values = torch.rand(kv_head_num * batch_size, K, Dh, dtype=dtype)
+        logits = torch.rand(q_head_num * batch_size, 1, K, dtype=dtype)
+        result = torch.zeros(q_head_num * batch_size, 1, Dh, dtype=dtype)
 
         # Check memory alignment
         assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
@@ -401,7 +410,8 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
             K,
             thread_num,
             Dh,
-            head_num,
+            q_head_num,
+            kv_head_num,
             values,
             logits,
             result,
@@ -415,33 +425,33 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
         )
         total_sec = total_sec + nano_sec
         ##########################################
-        # # Performance and Correctness
-        # # [x] Performance
-        # print("=====================================================")
-        # if isinstance(values, torch.Tensor):
-        #     print(f"Number of elements in Keys: {values.element_size()}")
-        #     print(f"Number of elements in Logits: {logits.element_size()}")
-        #     print(f"Keys element size: {values.element_size()}")
-        #     print(f"Logits element size: {logits.element_size()}")
-        #     total_bytes = (
-        #         values.element_size() * values.nelement()
-        #         + logits.element_size() * logits.nelement()
-        #     )
-        # else:
-        #     print(f"Number of elements in Keys: {values.size}")
-        #     print(f"Number of elements in Logits: {logits.size}")
-        #     print(f"Keys element size: {values.itemsize}")
-        #     print(f"Logits element size: {logits.itemsize}")
-        #     total_bytes = values.size * values.itemsize + logits.size * logits.itemsize
+        # Performance and Correctness
+        # [x] Performance
+        print("=====================================================")
+        if isinstance(values, torch.Tensor):
+            print(f"Number of elements in Keys: {values.element_size()}")
+            print(f"Number of elements in Logits: {logits.element_size()}")
+            print(f"Keys element size: {values.element_size()}")
+            print(f"Logits element size: {logits.element_size()}")
+            total_bytes = (
+                values.element_size() * values.nelement()
+                + logits.element_size() * logits.nelement()
+            )
+        else:
+            print(f"Number of elements in Keys: {values.size}")
+            print(f"Number of elements in Logits: {logits.size}")
+            print(f"Keys element size: {values.itemsize}")
+            print(f"Logits element size: {logits.itemsize}")
+            total_bytes = values.size * values.itemsize + logits.size * logits.itemsize
 
-        # micro_sec = nano_sec / 1e3
-        # sec = nano_sec / 1e9
-        # throughput = (total_bytes / 1e9) / sec
+        micro_sec = nano_sec / 1e3
+        sec = nano_sec / 1e9
+        throughput = (total_bytes / 1e9) / sec
 
-        # print(f"Took {micro_sec} microseconds")
-        # print(f"Total bytes: {total_bytes / 1e9} GB")
-        # print(f"Throughput(GB/s): {throughput}")
-        # ######
+        print(f"Took {micro_sec} microseconds")
+        print(f"Total bytes: {total_bytes / 1e9} GB")
+        print(f"Throughput(GB/s): {throughput}")
+        ######
 
         # # [x] Check the functionality
         # attn_out = torch.bmm(logits.to(device="cuda"), values.to(device="cuda"))
@@ -454,13 +464,13 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
         if dtype == np.float16:
             # Numpy version
             values = aligned_array(
-                (head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
+                (kv_head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
             )
             logits = aligned_array(
-                (head_num, batch_size, K), dtype=np.float16, alignment=64
+                (q_head_num, batch_size, K), dtype=np.float16, alignment=64
             )
             result = aligned_array(
-                (head_num, batch_size, Dh), dtype=np.float16, alignment=64
+                (q_head_num, batch_size, Dh), dtype=np.float16, alignment=64
             )
             values[:] = np.random.rand(*values.shape).astype(np.float16)
             logits[:] = np.random.rand(*logits.shape).astype(np.float16)
@@ -470,9 +480,9 @@ def test_value_gemv(batch_size, K, thread_num, dtype=np.float16):
             assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
         else:
             # Torch version
-            values = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
-            logits = torch.rand(head_num * batch_size, 1, K, dtype=dtype)
-            result = torch.zeros(head_num * batch_size, 1, Dh, dtype=dtype)
+            values = torch.rand(kv_head_num * batch_size, K, Dh, dtype=dtype)
+            logits = torch.rand(q_head_num * batch_size, 1, K, dtype=dtype)
+            result = torch.zeros(q_head_num * batch_size, 1, Dh, dtype=dtype)
             assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
             assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
             assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
@@ -546,7 +556,7 @@ def _attention_weights(q, k, mask, b, src_s, n_head):
     return attn_weights
 
 
-def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
+def test_key_gemv(batch_size, K, thread_num, is_gqa, dtype=np.float16):
     # Elevate the process to the highest priority(real-time class)
     sched_param = os.sched_param(os.sched_get_priority_max(os.SCHED_FIFO))
     try:
@@ -554,11 +564,12 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
     except PermissionError:
         print("Permission denied. Try running as root.")
 
-    head_num = 4
+    q_head_num = 4
+    kv_head_num = 1 if is_gqa else 4
     Dh = 128
     print(f"Key GEMV FP16")
     print(
-        f"BS: {batch_size}, K: {K}, Dh: {Dh}, head_num: {head_num}, thread_num: {thread_num}"
+        f"BS: {batch_size}, K: {K}, Dh: {Dh}, q_head_num: {q_head_num}, kv_head_num: {kv_head_num}, thread_num: {thread_num}"
     )
 
     kv_head_offset = batch_size * K * Dh
@@ -571,13 +582,13 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
     if dtype == np.float16:
         # Numpy version
         keys = aligned_array(
-            (head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
+            (kv_head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
         )
         queries = aligned_array(
-            (head_num, batch_size, Dh), dtype=np.float16, alignment=64
+            (q_head_num, batch_size, Dh), dtype=np.float16, alignment=64
         )
         logits = aligned_array(
-            (head_num, batch_size, K), dtype=np.float16, alignment=64
+            (q_head_num, batch_size, K), dtype=np.float16, alignment=64
         )
         keys[:] = np.random.rand(*keys.shape).astype(np.float16)
         queries[:] = np.random.rand(*queries.shape).astype(np.float16)
@@ -587,9 +598,9 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
         assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
     else:
         # Torch version
-        keys = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
-        queries = torch.rand(head_num * batch_size, 1, Dh, dtype=dtype)
-        logits = torch.zeros(head_num * batch_size, 1, K, dtype=dtype)
+        keys = torch.rand(kv_head_num * batch_size, K, Dh, dtype=dtype)
+        queries = torch.rand(q_head_num * batch_size, 1, Dh, dtype=dtype)
+        logits = torch.zeros(q_head_num * batch_size, 1, K, dtype=dtype)
         assert keys.data_ptr() % 64 == 0, "keys is not 64-byte aligned!"
         assert queries.data_ptr() % 64 == 0, "queries is not 64-byte aligned!"
         assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
@@ -601,7 +612,8 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
             K,
             thread_num,
             Dh,
-            head_num,
+            q_head_num,
+            kv_head_num,
             keys,
             queries,
             logits,
@@ -615,32 +627,32 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
         )
         total_sec = total_sec + nano_sec
         ##########################################
-        # # [x] Performance
-        # print("=====================================================")
-        # if isinstance(keys, torch.Tensor):
-        #     print(f"Number of elements in Keys: {keys.element_size()}")
-        #     print(f"Number of elements in Logits: {queries.element_size()}")
-        #     print(f"Keys element size: {keys.element_size()}")
-        #     print(f"Logits element size: {queries.element_size()}")
-        #     total_bytes = (
-        #         keys.element_size() * keys.nelement()
-        #         + queries.element_size() * queries.nelement()
-        #     )
-        # else:
-        #     print(f"Number of elements in Keys: {keys.size}")
-        #     print(f"Number of elements in Logits: {queries.size}")
-        #     print(f"Keys element size: {keys.itemsize}")
-        #     print(f"Logits element size: {queries.itemsize}")
-        #     total_bytes = keys.size * keys.itemsize + queries.size * queries.itemsize
+        # [x] Performance
+        print("=====================================================")
+        if isinstance(keys, torch.Tensor):
+            print(f"Number of elements in Keys: {keys.element_size()}")
+            print(f"Number of elements in Logits: {queries.element_size()}")
+            print(f"Keys element size: {keys.element_size()}")
+            print(f"Logits element size: {queries.element_size()}")
+            total_bytes = (
+                keys.element_size() * keys.nelement()
+                + queries.element_size() * queries.nelement()
+            )
+        else:
+            print(f"Number of elements in Keys: {keys.size}")
+            print(f"Number of elements in Logits: {queries.size}")
+            print(f"Keys element size: {keys.itemsize}")
+            print(f"Logits element size: {queries.itemsize}")
+            total_bytes = keys.size * keys.itemsize + queries.size * queries.itemsize
 
-        # micro_sec = nano_sec / 1e3
-        # sec = nano_sec / 1e9
-        # throughput = (total_bytes / 1e9) / sec
+        micro_sec = nano_sec / 1e3
+        sec = nano_sec / 1e9
+        throughput = (total_bytes / 1e9) / sec
 
-        # print(f"Took {micro_sec} microseconds")
-        # print(f"Total bytes: {total_bytes / 1e9} GB")
-        # print(f"Throughput(GB/s): {throughput}")
-        # ######
+        print(f"Took {micro_sec} microseconds")
+        print(f"Total bytes: {total_bytes / 1e9} GB")
+        print(f"Throughput(GB/s): {throughput}")
+        ######
 
         # # [x] Check the correctness
         # keys = keys.transpose(1, 2)
@@ -660,13 +672,13 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
         if dtype == np.float16:
             # Numpy version
             keys = aligned_array(
-                (head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
+                (kv_head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
             )
             queries = aligned_array(
-                (head_num, batch_size, Dh), dtype=np.float16, alignment=64
+                (q_head_num, batch_size, Dh), dtype=np.float16, alignment=64
             )
             logits = aligned_array(
-                (head_num, batch_size, K), dtype=np.float16, alignment=64
+                (q_head_num, batch_size, K), dtype=np.float16, alignment=64
             )
             keys[:] = np.random.rand(*keys.shape).astype(np.float16)
             queries[:] = np.random.rand(*queries.shape).astype(np.float16)
@@ -676,9 +688,9 @@ def test_key_gemv(batch_size, K, thread_num, dtype=np.float16):
             assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
         else:
             # Torch version
-            keys = torch.rand(head_num * batch_size, K, Dh, dtype=dtype)
-            queries = torch.rand(head_num * batch_size, 1, Dh, dtype=dtype)
-            logits = torch.zeros(head_num * batch_size, 1, K, dtype=dtype)
+            keys = torch.rand(kv_head_num * batch_size, K, Dh, dtype=dtype)
+            queries = torch.rand(q_head_num * batch_size, 1, Dh, dtype=dtype)
+            logits = torch.zeros(q_head_num * batch_size, 1, K, dtype=dtype)
             assert keys.data_ptr() % 64 == 0, "keys is not 64-byte aligned!"
             assert queries.data_ptr() % 64 == 0, "queries is not 64-byte aligned!"
             assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
@@ -916,6 +928,7 @@ def main():
     parser.add_argument("--numpy", action="store_true", help="Numpy or Torch")
     parser.add_argument("--key_gemv", action="store_true", help="Test Key GEMV")
     parser.add_argument("--softmax", action="store_true", help="Test Softmax")
+    parser.add_argument("--gqa", action="store_true", help="GQA or MHA")
 
     args = parser.parse_args()
 
@@ -925,20 +938,28 @@ def main():
         if args.key_gemv:
             if args.numpy:
                 test_key_gemv(
-                    args.batch_size, args.K, args.thread_num, dtype=np.float16
+                    args.batch_size, args.K, args.thread_num, args.gqa, dtype=np.float16
                 )
             else:
                 test_key_gemv(
-                    args.batch_size, args.K, args.thread_num, dtype=torch.float16
+                    args.batch_size,
+                    args.K,
+                    args.thread_num,
+                    args.gqa,
+                    dtype=torch.float16,
                 )
         else:
             if args.numpy:
                 test_value_gemv(
-                    args.batch_size, args.K, args.thread_num, dtype=np.float16
+                    args.batch_size, args.K, args.thread_num, args.gqa, dtype=np.float16
                 )
             else:
                 test_value_gemv(
-                    args.batch_size, args.K, args.thread_num, dtype=torch.float16
+                    args.batch_size,
+                    args.K,
+                    args.thread_num,
+                    args.gqa,
+                    dtype=torch.float16,
                 )
 
 

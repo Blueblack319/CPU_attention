@@ -989,13 +989,11 @@ inline void gemv_1(const int k, const int Dh, const int i, const int j,
   logits[i * logits_head_offset + j * logits_batch_offset + k] = hsum(c00);
 }
 
-inline void gemv_15_half(const int k, const int Dh, const int i, const int j,
-                         const int queries_head_offset,
-                         const int queries_batch_offset,
-                         const int keys_head_offset,
-                         const int keys_batch_offset,
-                         const int logits_head_offset,
-                         const int logits_batch_offset) {
+inline void gemv_15_half(
+    const int k, const int Dh, const int i_q, const int i_kv, const int j,
+    const int queries_head_offset, const int queries_batch_offset,
+    const int keys_head_offset, const int keys_batch_offset,
+    const int logits_head_offset, const int logits_batch_offset) {
   __m256 c00 = _mm256_setzero_ps();
   __m256 c01 = _mm256_setzero_ps();
   __m256 c02 = _mm256_setzero_ps();
@@ -1024,53 +1022,53 @@ inline void gemv_15_half(const int k, const int Dh, const int i, const int j,
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     __m256 k8 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 8) * Dh + l)));
     __m256 k9 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 9) * Dh + l)));
     __m256 k10 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 10) * Dh + l)));
     __m256 k11 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 11) * Dh + l)));
     __m256 k12 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 12) * Dh + l)));
     __m256 k13 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 13) * Dh + l)));
     __m256 k14 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 14) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1089,45 +1087,43 @@ inline void gemv_15_half(const int k, const int Dh, const int i, const int j,
     c14 = _mm256_fmadd_ps(q0, k14, c14);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 8] =
       __float2half(hsum(c08));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 9] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 9] =
       __float2half(hsum(c09));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 10] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 10] =
       __float2half(hsum(c10));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 11] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 11] =
       __float2half(hsum(c11));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 12] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 12] =
       __float2half(hsum(c12));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 13] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 13] =
       __float2half(hsum(c13));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 14] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 14] =
       __float2half(hsum(c14));
 }
 
-inline void gemv_14_half(const int k, const int Dh, const int i, const int j,
-                         const int queries_head_offset,
-                         const int queries_batch_offset,
-                         const int keys_head_offset,
-                         const int keys_batch_offset,
-                         const int logits_head_offset,
-                         const int logits_batch_offset) {
+inline void gemv_14_half(
+    const int k, const int Dh, const int i_q, const int i_kv, const int j,
+    const int queries_head_offset, const int queries_batch_offset,
+    const int keys_head_offset, const int keys_batch_offset,
+    const int logits_head_offset, const int logits_batch_offset) {
   __m256 c00 = _mm256_setzero_ps();
   __m256 c01 = _mm256_setzero_ps();
   __m256 c02 = _mm256_setzero_ps();
@@ -1150,55 +1146,55 @@ inline void gemv_14_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     __m256 k8 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 8) * Dh + l)));
     __m256 k9 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 9) * Dh + l)));
     __m256 k10 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 10) * Dh + l)));
     __m256 k11 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 11) * Dh + l)));
     __m256 k12 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 12) * Dh + l)));
     __m256 k13 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 13) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1216,43 +1212,41 @@ inline void gemv_14_half(const int k, const int Dh, const int i, const int j,
     c13 = _mm256_fmadd_ps(q0, k13, c13);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 8] =
       __float2half(hsum(c08));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 9] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 9] =
       __float2half(hsum(c09));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 10] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 10] =
       __float2half(hsum(c10));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 11] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 11] =
       __float2half(hsum(c11));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 12] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 12] =
       __float2half(hsum(c12));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 13] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 13] =
       __float2half(hsum(c13));
 }
 
-inline void gemv_13_half(const int k, const int Dh, const int i, const int j,
-                         const int queries_head_offset,
-                         const int queries_batch_offset,
-                         const int keys_head_offset,
-                         const int keys_batch_offset,
-                         const int logits_head_offset,
-                         const int logits_batch_offset) {
+inline void gemv_13_half(
+    const int k, const int Dh, const int i_q, const int i_kv, const int j,
+    const int queries_head_offset, const int queries_batch_offset,
+    const int keys_head_offset, const int keys_batch_offset,
+    const int logits_head_offset, const int logits_batch_offset) {
   __m256 c00 = _mm256_setzero_ps();
   __m256 c01 = _mm256_setzero_ps();
   __m256 c02 = _mm256_setzero_ps();
@@ -1274,52 +1268,52 @@ inline void gemv_13_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     __m256 k8 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 8) * Dh + l)));
     __m256 k9 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 9) * Dh + l)));
     __m256 k10 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 10) * Dh + l)));
     __m256 k11 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 11) * Dh + l)));
     __m256 k12 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 12) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1336,41 +1330,39 @@ inline void gemv_13_half(const int k, const int Dh, const int i, const int j,
     c12 = _mm256_fmadd_ps(q0, k12, c12);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 8] =
       __float2half(hsum(c08));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 9] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 9] =
       __float2half(hsum(c09));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 10] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 10] =
       __float2half(hsum(c10));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 11] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 11] =
       __float2half(hsum(c11));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 12] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 12] =
       __float2half(hsum(c12));
 }
 
-inline void gemv_12_half(const int k, const int Dh, const int i, const int j,
-                         const int queries_head_offset,
-                         const int queries_batch_offset,
-                         const int keys_head_offset,
-                         const int keys_batch_offset,
-                         const int logits_head_offset,
-                         const int logits_batch_offset) {
+inline void gemv_12_half(
+    const int k, const int Dh, const int i_q, const int i_kv, const int j,
+    const int queries_head_offset, const int queries_batch_offset,
+    const int keys_head_offset, const int keys_batch_offset,
+    const int logits_head_offset, const int logits_batch_offset) {
   __m256 c00 = _mm256_setzero_ps();
   __m256 c01 = _mm256_setzero_ps();
   __m256 c02 = _mm256_setzero_ps();
@@ -1391,49 +1383,49 @@ inline void gemv_12_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     __m256 k8 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 8) * Dh + l)));
     __m256 k9 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 9) * Dh + l)));
     __m256 k10 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 10) * Dh + l)));
     __m256 k11 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 11) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1449,39 +1441,37 @@ inline void gemv_12_half(const int k, const int Dh, const int i, const int j,
     c11 = _mm256_fmadd_ps(q0, k11, c11);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 8] =
       __float2half(hsum(c08));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 9] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 9] =
       __float2half(hsum(c09));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 10] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 10] =
       __float2half(hsum(c10));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 11] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 11] =
       __float2half(hsum(c11));
 }
 
-inline void gemv_11_half(const int k, const int Dh, const int i, const int j,
-                         const int queries_head_offset,
-                         const int queries_batch_offset,
-                         const int keys_head_offset,
-                         const int keys_batch_offset,
-                         const int logits_head_offset,
-                         const int logits_batch_offset) {
+inline void gemv_11_half(
+    const int k, const int Dh, const int i_q, const int i_kv, const int j,
+    const int queries_head_offset, const int queries_batch_offset,
+    const int keys_head_offset, const int keys_batch_offset,
+    const int logits_head_offset, const int logits_batch_offset) {
   __m256 c00 = _mm256_setzero_ps();
   __m256 c01 = _mm256_setzero_ps();
   __m256 c02 = _mm256_setzero_ps();
@@ -1501,46 +1491,46 @@ inline void gemv_11_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     __m256 k8 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 8) * Dh + l)));
     __m256 k9 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 9) * Dh + l)));
     __m256 k10 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 10) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1555,37 +1545,35 @@ inline void gemv_11_half(const int k, const int Dh, const int i, const int j,
     c10 = _mm256_fmadd_ps(q0, k10, c10);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 8] =
       __float2half(hsum(c08));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 9] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 9] =
       __float2half(hsum(c09));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 10] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 10] =
       __float2half(hsum(c10));
 }
 
-inline void gemv_10_half(const int k, const int Dh, const int i, const int j,
-                         const int queries_head_offset,
-                         const int queries_batch_offset,
-                         const int keys_head_offset,
-                         const int keys_batch_offset,
-                         const int logits_head_offset,
-                         const int logits_batch_offset) {
+inline void gemv_10_half(
+    const int k, const int Dh, const int i_q, const int i_kv, const int j,
+    const int queries_head_offset, const int queries_batch_offset,
+    const int keys_head_offset, const int keys_batch_offset,
+    const int logits_head_offset, const int logits_batch_offset) {
   __m256 c00 = _mm256_setzero_ps();
   __m256 c01 = _mm256_setzero_ps();
   __m256 c02 = _mm256_setzero_ps();
@@ -1604,43 +1592,43 @@ inline void gemv_10_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     __m256 k8 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 8) * Dh + l)));
     __m256 k9 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 9) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1654,29 +1642,30 @@ inline void gemv_10_half(const int k, const int Dh, const int i, const int j,
     c09 = _mm256_fmadd_ps(q0, k9, c09);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 8] =
       __float2half(hsum(c08));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 9] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 9] =
       __float2half(hsum(c09));
 }
 
-inline void gemv_9_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_9_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -1699,40 +1688,40 @@ inline void gemv_9_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     __m256 k8 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 8) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1745,27 +1734,28 @@ inline void gemv_9_half(const int k, const int Dh, const int i, const int j,
     c08 = _mm256_fmadd_ps(q0, k8, c08);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 8] =
       __float2half(hsum(c08));
 }
 
-inline void gemv_8_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_8_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -1787,37 +1777,37 @@ inline void gemv_8_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     __m256 k7 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 7) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1829,25 +1819,26 @@ inline void gemv_8_half(const int k, const int Dh, const int i, const int j,
     c07 = _mm256_fmadd_ps(q0, k7, c07);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 7] =
       __float2half(hsum(c07));
 }
 
-inline void gemv_7_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_7_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -1868,34 +1859,34 @@ inline void gemv_7_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     __m256 k6 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 6) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1906,23 +1897,24 @@ inline void gemv_7_half(const int k, const int Dh, const int i, const int j,
     c06 = _mm256_fmadd_ps(q0, k6, c06);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 6] =
       __float2half(hsum(c06));
 }
 
-inline void gemv_6_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_6_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -1942,31 +1934,31 @@ inline void gemv_6_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     __m256 k5 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 5) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -1976,21 +1968,22 @@ inline void gemv_6_half(const int k, const int Dh, const int i, const int j,
     c05 = _mm256_fmadd_ps(q0, k5, c05);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 5] =
       __float2half(hsum(c05));
 }
 
-inline void gemv_5_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_5_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -2009,28 +2002,28 @@ inline void gemv_5_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     __m256 k4 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 4) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -2039,19 +2032,20 @@ inline void gemv_5_half(const int k, const int Dh, const int i, const int j,
     c04 = _mm256_fmadd_ps(q0, k4, c04);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 4] =
       __float2half(hsum(c04));
 }
 
-inline void gemv_4_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_4_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -2069,25 +2063,25 @@ inline void gemv_4_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     __m256 k3 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 3) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -2095,17 +2089,18 @@ inline void gemv_4_half(const int k, const int Dh, const int i, const int j,
     c03 = _mm256_fmadd_ps(q0, k3, c03);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 3] =
       __float2half(hsum(c03));
 }
 
-inline void gemv_3_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_3_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -2122,37 +2117,38 @@ inline void gemv_3_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     __m256 k2 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 2) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
     c02 = _mm256_fmadd_ps(q0, k2, c02);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 2] =
       __float2half(hsum(c02));
 }
 
-inline void gemv_2_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_2_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -2168,31 +2164,32 @@ inline void gemv_2_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     __m256 k1 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + (k + 1) * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
     c01 = _mm256_fmadd_ps(q0, k1, c01);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k + 1] =
       __float2half(hsum(c01));
 }
 
-inline void gemv_1_half(const int k, const int Dh, const int i, const int j,
+inline void gemv_1_half(const int k, const int Dh, const int i_q,
+                        const int i_kv, const int j,
                         const int queries_head_offset,
                         const int queries_batch_offset,
                         const int keys_head_offset, const int keys_batch_offset,
@@ -2207,21 +2204,21 @@ inline void gemv_1_half(const int k, const int Dh, const int i, const int j,
     //                _MM_HINT_T0);
     // if (k + 8 < K)
     //   _mm_prefetch(
-    //       (const char*)(keys + i * keys_head_offset +
+    //       (const char*)(keys + i_kv * keys_head_offset +
     //                     j * keys_batch_offset + (k + 8) * Dh + l),
     //       _MM_HINT_T0);
 
     __m256 q0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(queries_half + i * queries_head_offset +
+        _mm_load_si128((__m128i *)(queries_half + i_q * queries_head_offset +
                                    j * queries_batch_offset + l)));
 
     __m256 k0 = _mm256_cvtph_ps(
-        _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+        _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                    j * keys_batch_offset + k * Dh + l)));
     c00 = _mm256_fmadd_ps(q0, k0, c00);
   }
   // Store the accumulated result back into the result array
-  logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+  logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
       __float2half(hsum(c00));
 }
 
@@ -2386,7 +2383,7 @@ void value_gemv_threaded(float *values, float *logits, float *result,
 
 // [x] Key GEMV with FP32
 void key_gemv_threaded(
-    float *keys_, float *queries_, float *logits_, int const num_head,
+    float *keys_, float *queries_, float *logits_, int const head_num,
     int const batch_size, int const K, int const Dh, int const keys_head_offset,
     int const keys_batch_offset, int const queries_head_offset,
     int const queries_batch_offset, int const logits_head_offset,
@@ -2409,7 +2406,7 @@ void key_gemv_threaded(
 
   // Multiply and Add
   for (int idx = start_idx; idx < end_idx; ++idx) {
-    int i = idx / batch_size;
+    const int i = idx / batch_size;
     int j = idx % batch_size;
 
     for (int k = 0; k < K; k += 16) {
@@ -2639,8 +2636,8 @@ void key_gemv_threaded(
 
 // [x] Value GEMV with FP16
 void value_gemv_threaded_half(
-    half *values_, half *logits_, half *results_, int const num_head,
-    int const batch_size, int const K, int const Dh,
+    half *values_, half *logits_, half *results_, int const q_head_num,
+    int const kv_head_num, int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
     int const logits_haed_offset, int const logits_batch_offset,
     int const result_head_offset, int const result_batch_offset,
@@ -2652,16 +2649,18 @@ void value_gemv_threaded_half(
   logits_half = logits_;
   results_half = results_;
   const int last_case = K % 16;
+  // [ ] Reduce memory footprint
+  const int q_per_kv = q_head_num / kv_head_num;
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
-    // while (!(*ready_flag)) {
   }
   clock_gettime(CLOCK_REALTIME, &start);
 
   // Multiply and Add
   for (int idx = start_idx; idx < end_idx; ++idx) {
-    int i = idx / batch_size;
-    int j = idx % batch_size;
+    const int i_q = idx / batch_size;
+    const int i_kv = i_q / q_per_kv;
+    const int j = idx % batch_size;
 
     __m256 c00 = _mm256_setzero_ps();
     __m256 c01 = _mm256_setzero_ps();
@@ -2682,61 +2681,61 @@ void value_gemv_threaded_half(
 
     for (int k = 0; k < K; ++k) {
       float logit = __half2float(
-          logits_half[i * logits_haed_offset + j * logits_batch_offset + k]);
+          logits_half[i_q * logits_haed_offset + j * logits_batch_offset + k]);
       __m256 logit_vec = _mm256_set1_ps(logit);
 
       if (k + 1 < K) {
-        _mm_prefetch((const char *)(values_half + i * values_head_offset +
+        _mm_prefetch((const char *)(values_half + i_kv * values_head_offset +
                                     j * values_batch_offset + (k + 1) * Dh),
                      _MM_HINT_T0);
       }
       __m256 v00 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh)));
       __m256 v01 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 8)));
       __m256 v02 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 16)));
       __m256 v03 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 24)));
       __m256 v04 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 32)));
       __m256 v05 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 40)));
       __m256 v06 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 48)));
       __m256 v07 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 56)));
       __m256 v08 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 64)));
       __m256 v09 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 72)));
       __m256 v10 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 80)));
       __m256 v11 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 88)));
       __m256 v12 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 96)));
       __m256 v13 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 104)));
       __m256 v14 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 112)));
       __m256 v15 = _mm256_cvtph_ps(
-          _mm_load_si128((__m128i *)(values_half + i * values_head_offset +
+          _mm_load_si128((__m128i *)(values_half + i_kv * values_head_offset +
                                      j * values_batch_offset + k * Dh + 120)));
       c00 = _mm256_fmadd_ps(logit_vec, v00, c00);
       c01 = _mm256_fmadd_ps(logit_vec, v01, c01);
@@ -2757,67 +2756,67 @@ void value_gemv_threaded_half(
     }
     // Store the accumulated result back into the result array
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset),
         _mm256_cvtps_ph(c00, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 8),
         _mm256_cvtps_ph(c01, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 16),
         _mm256_cvtps_ph(c02, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 24),
         _mm256_cvtps_ph(c03, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 32),
         _mm256_cvtps_ph(c04, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 40),
         _mm256_cvtps_ph(c05, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 48),
         _mm256_cvtps_ph(c06, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 56),
         _mm256_cvtps_ph(c07, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 64),
         _mm256_cvtps_ph(c08, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 72),
         _mm256_cvtps_ph(c09, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 80),
         _mm256_cvtps_ph(c10, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 88),
         _mm256_cvtps_ph(c11, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 96),
         _mm256_cvtps_ph(c12, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 104),
         _mm256_cvtps_ph(c13, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 112),
         _mm256_cvtps_ph(c14, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
     _mm_store_si128(
-        (__m128i *)(results_half + i * result_head_offset +
+        (__m128i *)(results_half + i_q * result_head_offset +
                     j * result_batch_offset + 120),
         _mm256_cvtps_ph(c15, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
   }
@@ -2829,21 +2828,408 @@ void value_gemv_threaded_half(
       ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
 }
 
+void value_gemv_threaded_half_1(
+    half *values_, half *logits_, half *results_, int const q_head_num,
+    int const kv_head_num, int const batch_size, int const K, int const Dh,
+    int const values_head_offset, int const values_batch_offset,
+    int const logits_haed_offset, int const logits_batch_offset,
+    int const result_head_offset, int const result_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx, std::atomic<bool> *ready_flag,
+    std::atomic<bool> *finished_flag, pair_tr *duration) {
+  struct timespec start, end;
+  values_half = values_;
+  logits_half = logits_;
+  results_half = results_;
+  const int last_case = K % 16;
+  // [ ] Reduce memory footprint
+  const int q_per_kv = q_head_num / kv_head_num;
+
+  while (!(ready_flag->load(std::memory_order_acquire))) {
+    // // Multiply and Add
+    // for (int idx = start_idx; idx < end_idx; ++idx) {  // batch index
+    //   for (int q_head_idx = 0; q_head_idx < q_head_num; ++q_head_idx) {
+    //     //   const int i_q = idx / batch_size;
+    //     //   const int i_kv = i_q / q_per_kv;
+    //     //   int j = idx % batch_size;
+    //     int const kv_head_idx = q_head_idx / q_per_kv;
+
+    //     __m256 c00 = _mm256_setzero_ps();
+    //     __m256 c01 = _mm256_setzero_ps();
+    //     __m256 c02 = _mm256_setzero_ps();
+    //     __m256 c03 = _mm256_setzero_ps();
+    //     __m256 c04 = _mm256_setzero_ps();
+    //     __m256 c05 = _mm256_setzero_ps();
+    //     __m256 c06 = _mm256_setzero_ps();
+    //     __m256 c07 = _mm256_setzero_ps();
+    //     __m256 c08 = _mm256_setzero_ps();
+    //     __m256 c09 = _mm256_setzero_ps();
+    //     __m256 c10 = _mm256_setzero_ps();
+    //     __m256 c11 = _mm256_setzero_ps();
+    //     __m256 c12 = _mm256_setzero_ps();
+    //     __m256 c13 = _mm256_setzero_ps();
+    //     __m256 c14 = _mm256_setzero_ps();
+    //     __m256 c15 = _mm256_setzero_ps();
+
+    //     for (int k = 0; k < K; ++k) {
+    //       float logit =
+    //           __half2float(logits_half[q_head_idx * logits_haed_offset +
+    //                                    idx * logits_batch_offset + k]);
+    //       __m256 logit_vec = _mm256_set1_ps(logit);
+
+    //       if (k + 1 < K) {
+    //         _mm_prefetch(
+    //             (const char *)(values_half + kv_head_idx * values_head_offset
+    //             +
+    //                            idx * values_batch_offset + (k + 1) * Dh),
+    //             _MM_HINT_T0);
+    //       }
+    //       __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh)));
+    //       __m256 v01 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 8)));
+    //       __m256 v02 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 16)));
+    //       __m256 v03 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 24)));
+    //       __m256 v04 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 32)));
+    //       __m256 v05 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 40)));
+    //       __m256 v06 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 48)));
+    //       __m256 v07 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 56)));
+    //       __m256 v08 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 64)));
+    //       __m256 v09 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 72)));
+    //       __m256 v10 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 80)));
+    //       __m256 v11 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 88)));
+    //       __m256 v12 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 96)));
+    //       __m256 v13 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 104)));
+    //       __m256 v14 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 112)));
+    //       __m256 v15 = _mm256_cvtph_ps(_mm_load_si128(
+    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
+    //                       idx * values_batch_offset + k * Dh + 120)));
+    //       c00 = _mm256_fmadd_ps(logit_vec, v00, c00);
+    //       c01 = _mm256_fmadd_ps(logit_vec, v01, c01);
+    //       c02 = _mm256_fmadd_ps(logit_vec, v02, c02);
+    //       c03 = _mm256_fmadd_ps(logit_vec, v03, c03);
+    //       c04 = _mm256_fmadd_ps(logit_vec, v04, c04);
+    //       c05 = _mm256_fmadd_ps(logit_vec, v05, c05);
+    //       c06 = _mm256_fmadd_ps(logit_vec, v06, c06);
+    //       c07 = _mm256_fmadd_ps(logit_vec, v07, c07);
+    //       c08 = _mm256_fmadd_ps(logit_vec, v08, c08);
+    //       c09 = _mm256_fmadd_ps(logit_vec, v09, c09);
+    //       c10 = _mm256_fmadd_ps(logit_vec, v10, c10);
+    //       c11 = _mm256_fmadd_ps(logit_vec, v11, c11);
+    //       c12 = _mm256_fmadd_ps(logit_vec, v12, c12);
+    //       c13 = _mm256_fmadd_ps(logit_vec, v13, c13);
+    //       c14 = _mm256_fmadd_ps(logit_vec, v14, c14);
+    //       c15 = _mm256_fmadd_ps(logit_vec, v15, c15);
+    //     }
+    //     // Store the accumulated result back into the result array
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset),
+    //         _mm256_cvtps_ph(c00,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 8),
+    //         _mm256_cvtps_ph(c01,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 16),
+    //         _mm256_cvtps_ph(c02,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 24),
+    //         _mm256_cvtps_ph(c03,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 32),
+    //         _mm256_cvtps_ph(c04,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 40),
+    //         _mm256_cvtps_ph(c05,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 48),
+    //         _mm256_cvtps_ph(c06,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 56),
+    //         _mm256_cvtps_ph(c07,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 64),
+    //         _mm256_cvtps_ph(c08,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 72),
+    //         _mm256_cvtps_ph(c09,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 80),
+    //         _mm256_cvtps_ph(c10,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 88),
+    //         _mm256_cvtps_ph(c11,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 96),
+    //         _mm256_cvtps_ph(c12,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 104),
+    //         _mm256_cvtps_ph(c13,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 112),
+    //         _mm256_cvtps_ph(c14,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //     _mm_store_si128(
+    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
+    //                     idx * result_batch_offset + 120),
+    //         _mm256_cvtps_ph(c15,
+    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    //   }
+    // }
+  }
+  clock_gettime(CLOCK_REALTIME, &start);
+
+  // Multiply and Add
+  for (int idx = start_idx; idx < end_idx; ++idx) {  // batch index
+    for (int q_head_idx = 0; q_head_idx < q_head_num; ++q_head_idx) {
+      //   const int i_q = idx / batch_size;
+      //   const int i_kv = i_q / q_per_kv;
+      //   int j = idx % batch_size;
+      int const kv_head_idx = q_head_idx / q_per_kv;
+
+      __m256 c00 = _mm256_setzero_ps();
+      __m256 c01 = _mm256_setzero_ps();
+      __m256 c02 = _mm256_setzero_ps();
+      __m256 c03 = _mm256_setzero_ps();
+      __m256 c04 = _mm256_setzero_ps();
+      __m256 c05 = _mm256_setzero_ps();
+      __m256 c06 = _mm256_setzero_ps();
+      __m256 c07 = _mm256_setzero_ps();
+      __m256 c08 = _mm256_setzero_ps();
+      __m256 c09 = _mm256_setzero_ps();
+      __m256 c10 = _mm256_setzero_ps();
+      __m256 c11 = _mm256_setzero_ps();
+      __m256 c12 = _mm256_setzero_ps();
+      __m256 c13 = _mm256_setzero_ps();
+      __m256 c14 = _mm256_setzero_ps();
+      __m256 c15 = _mm256_setzero_ps();
+
+      for (int k = 0; k < K; ++k) {
+        float logit = __half2float(logits_half[q_head_idx * logits_haed_offset +
+                                               idx * logits_batch_offset + k]);
+        __m256 logit_vec = _mm256_set1_ps(logit);
+
+        if (k + 1 < K) {
+          _mm_prefetch(
+              (const char *)(values_half + kv_head_idx * values_head_offset +
+                             idx * values_batch_offset + (k + 1) * Dh),
+              _MM_HINT_T0);
+        }
+        __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh)));
+        __m256 v01 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 8)));
+        __m256 v02 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 16)));
+        __m256 v03 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 24)));
+        __m256 v04 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 32)));
+        __m256 v05 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 40)));
+        __m256 v06 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 48)));
+        __m256 v07 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 56)));
+        __m256 v08 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 64)));
+        __m256 v09 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 72)));
+        __m256 v10 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 80)));
+        __m256 v11 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 88)));
+        __m256 v12 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 96)));
+        __m256 v13 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 104)));
+        __m256 v14 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 112)));
+        __m256 v15 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 120)));
+        c00 = _mm256_fmadd_ps(logit_vec, v00, c00);
+        c01 = _mm256_fmadd_ps(logit_vec, v01, c01);
+        c02 = _mm256_fmadd_ps(logit_vec, v02, c02);
+        c03 = _mm256_fmadd_ps(logit_vec, v03, c03);
+        c04 = _mm256_fmadd_ps(logit_vec, v04, c04);
+        c05 = _mm256_fmadd_ps(logit_vec, v05, c05);
+        c06 = _mm256_fmadd_ps(logit_vec, v06, c06);
+        c07 = _mm256_fmadd_ps(logit_vec, v07, c07);
+        c08 = _mm256_fmadd_ps(logit_vec, v08, c08);
+        c09 = _mm256_fmadd_ps(logit_vec, v09, c09);
+        c10 = _mm256_fmadd_ps(logit_vec, v10, c10);
+        c11 = _mm256_fmadd_ps(logit_vec, v11, c11);
+        c12 = _mm256_fmadd_ps(logit_vec, v12, c12);
+        c13 = _mm256_fmadd_ps(logit_vec, v13, c13);
+        c14 = _mm256_fmadd_ps(logit_vec, v14, c14);
+        c15 = _mm256_fmadd_ps(logit_vec, v15, c15);
+      }
+      // Store the accumulated result back into the result array
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset),
+          _mm256_cvtps_ph(c00, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 8),
+          _mm256_cvtps_ph(c01, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 16),
+          _mm256_cvtps_ph(c02, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 24),
+          _mm256_cvtps_ph(c03, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 32),
+          _mm256_cvtps_ph(c04, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 40),
+          _mm256_cvtps_ph(c05, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 48),
+          _mm256_cvtps_ph(c06, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 56),
+          _mm256_cvtps_ph(c07, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 64),
+          _mm256_cvtps_ph(c08, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 72),
+          _mm256_cvtps_ph(c09, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 80),
+          _mm256_cvtps_ph(c10, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 88),
+          _mm256_cvtps_ph(c11, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 96),
+          _mm256_cvtps_ph(c12, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 104),
+          _mm256_cvtps_ph(c13, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 112),
+          _mm256_cvtps_ph(c14, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+      _mm_store_si128(
+          (__m128i *)(results_half + q_head_idx * result_head_offset +
+                      idx * result_batch_offset + 120),
+          _mm256_cvtps_ph(c15, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+    }
+  }
+  // Mark this thread as finished
+  finished_flag->store(true, std::memory_order_release);
+  clock_gettime(CLOCK_REALTIME, &end);
+  duration->first = thread_id;
+  duration->second =
+      ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+  //   duration->second = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
+}
+
 // [x] Key GEMV with FP16
 void key_gemv_threaded_half(
-    half *keys_, half *queries_, half *logits_, int const num_head,
-    int const batch_size, int const K, int const Dh, int const keys_head_offset,
-    int const keys_batch_offset, int const queries_head_offset,
-    int const queries_batch_offset, int const logits_head_offset,
-    int const logits_batch_offset, int const thread_id, int const num_threads,
-    int const start_idx, int const end_idx, std::atomic<bool> *ready_flag,
+    half *keys_, half *queries_, half *logits_, int const q_head_num,
+    int const kv_head_num, int const batch_size, int const K, int const Dh,
+    int const keys_head_offset, int const keys_batch_offset,
+    int const queries_head_offset, int const queries_batch_offset,
+    int const logits_head_offset, int const logits_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx, std::atomic<bool> *ready_flag,
     std::atomic<bool> *finished_flag, pair_tr *duration) {
   struct timespec start, end;
   keys_half = keys_;
   queries_half = queries_;
   logits_half = logits_;
   const int last_case = K % 16;
-  // DEBUGGING
+  // [ ] Reduce memory footprint
+  const int q_per_kv = q_head_num / kv_head_num;
+  // DEBUG
   // printf("lastcase %d\n", last_case);
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
@@ -2854,95 +3240,111 @@ void key_gemv_threaded_half(
 
   // Multiply and Add
   for (int idx = start_idx; idx < end_idx; ++idx) {
-    int i = idx / batch_size;
+    const int i_q = idx / batch_size;
+    const int i_kv = i_q / q_per_kv;
     int j = idx % batch_size;
 
     for (int k = 0; k < K; k += 16) {
       if (k + 16 > K) {
         switch (last_case) {
           case 1:
-            gemv_1_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_1_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
             break;
           case 2:
-            gemv_2_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_2_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
             break;
           case 3:
-            gemv_3_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_3_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
             break;
           case 4:
-            gemv_4_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_4_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
             break;
           case 5:
-            gemv_5_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_5_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
             break;
           case 6:
-            gemv_6_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_6_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
 
             break;
           case 7:
-            gemv_7_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_7_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
 
             break;
           case 8:
-            gemv_8_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_8_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
 
             break;
           case 9:
-            gemv_9_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                        keys_head_offset, keys_batch_offset, logits_head_offset,
+            gemv_9_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                        queries_batch_offset, keys_head_offset,
+                        keys_batch_offset, logits_head_offset,
                         logits_batch_offset);
 
             break;
           case 10:
-            gemv_10_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                         keys_head_offset, keys_batch_offset,
-                         logits_head_offset, logits_batch_offset);
+            gemv_10_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                         queries_batch_offset, keys_head_offset,
+                         keys_batch_offset, logits_head_offset,
+                         logits_batch_offset);
 
             break;
           case 11:
-            gemv_11_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                         keys_head_offset, keys_batch_offset,
-                         logits_head_offset, logits_batch_offset);
+            gemv_11_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                         queries_batch_offset, keys_head_offset,
+                         keys_batch_offset, logits_head_offset,
+                         logits_batch_offset);
 
             break;
           case 12:
-            gemv_12_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                         keys_head_offset, keys_batch_offset,
-                         logits_head_offset, logits_batch_offset);
+            gemv_12_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                         queries_batch_offset, keys_head_offset,
+                         keys_batch_offset, logits_head_offset,
+                         logits_batch_offset);
 
             break;
           case 13:
-            gemv_13_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                         keys_head_offset, keys_batch_offset,
-                         logits_head_offset, logits_batch_offset);
+            gemv_13_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                         queries_batch_offset, keys_head_offset,
+                         keys_batch_offset, logits_head_offset,
+                         logits_batch_offset);
 
             break;
           case 14:
-            gemv_14_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                         keys_head_offset, keys_batch_offset,
-                         logits_head_offset, logits_batch_offset);
+            gemv_14_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                         queries_batch_offset, keys_head_offset,
+                         keys_batch_offset, logits_head_offset,
+                         logits_batch_offset);
 
             break;
           case 15:
-            gemv_15_half(k, Dh, i, j, queries_head_offset, queries_batch_offset,
-                         keys_head_offset, keys_batch_offset,
-                         logits_head_offset, logits_batch_offset);
+            gemv_15_half(k, Dh, i_q, i_kv, j, queries_head_offset,
+                         queries_batch_offset, keys_head_offset,
+                         keys_batch_offset, logits_head_offset,
+                         logits_batch_offset);
 
             break;
           default:
@@ -2979,56 +3381,56 @@ void key_gemv_threaded_half(
           //       _MM_HINT_T0);
 
           __m256 q0 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(queries_half + i * queries_head_offset +
+              (__m128i *)(queries_half + i_q * queries_head_offset +
                           j * queries_batch_offset + l)));
 
           __m256 k0 = _mm256_cvtph_ps(
-              _mm_load_si128((__m128i *)(keys_half + i * keys_head_offset +
+              _mm_load_si128((__m128i *)(keys_half + i_kv * keys_head_offset +
                                          j * keys_batch_offset + k * Dh + l)));
           __m256 k1 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 1) * Dh + l)));
           __m256 k2 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 2) * Dh + l)));
           __m256 k3 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 3) * Dh + l)));
           __m256 k4 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 4) * Dh + l)));
           __m256 k5 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 5) * Dh + l)));
           __m256 k6 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 6) * Dh + l)));
           __m256 k7 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 7) * Dh + l)));
           __m256 k8 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 8) * Dh + l)));
           __m256 k9 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 9) * Dh + l)));
           __m256 k10 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 10) * Dh + l)));
           __m256 k11 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 11) * Dh + l)));
           __m256 k12 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 12) * Dh + l)));
           __m256 k13 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 13) * Dh + l)));
           __m256 k14 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 14) * Dh + l)));
           __m256 k15 = _mm256_cvtph_ps(_mm_load_si128(
-              (__m128i *)(keys_half + i * keys_head_offset +
+              (__m128i *)(keys_half + i_kv * keys_head_offset +
                           j * keys_batch_offset + (k + 15) * Dh + l)));
           c00 = _mm256_fmadd_ps(q0, k0, c00);
           c01 = _mm256_fmadd_ps(q0, k1, c01);
@@ -3048,38 +3450,606 @@ void key_gemv_threaded_half(
           c15 = _mm256_fmadd_ps(q0, k15, c15);
         }
         // Store the accumulated result back into the result array
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k] =
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k] =
             __float2half(hsum(c00));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 1] =
-            __float2half(hsum(c01));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 2] =
-            __float2half(hsum(c02));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 3] =
-            __float2half(hsum(c03));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 4] =
-            __float2half(hsum(c04));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 5] =
-            __float2half(hsum(c05));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 6] =
-            __float2half(hsum(c06));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 7] =
-            __float2half(hsum(c07));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 8] =
-            __float2half(hsum(c08));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 9] =
-            __float2half(hsum(c09));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 10] =
-            __float2half(hsum(c10));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 11] =
-            __float2half(hsum(c11));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 12] =
-            __float2half(hsum(c12));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 13] =
-            __float2half(hsum(c13));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 14] =
-            __float2half(hsum(c14));
-        logits_half[i * logits_head_offset + j * logits_batch_offset + k + 15] =
-            __float2half(hsum(c15));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    1] = __float2half(hsum(c01));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    2] = __float2half(hsum(c02));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    3] = __float2half(hsum(c03));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    4] = __float2half(hsum(c04));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    5] = __float2half(hsum(c05));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    6] = __float2half(hsum(c06));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    7] = __float2half(hsum(c07));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    8] = __float2half(hsum(c08));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    9] = __float2half(hsum(c09));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    10] = __float2half(hsum(c10));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    11] = __float2half(hsum(c11));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    12] = __float2half(hsum(c12));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    13] = __float2half(hsum(c13));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    14] = __float2half(hsum(c14));
+        logits_half[i_q * logits_head_offset + j * logits_batch_offset + k +
+                    15] = __float2half(hsum(c15));
+      }
+    }
+  }
+  // Mark this thread as finished
+  finished_flag->store(true, std::memory_order_release);
+  clock_gettime(CLOCK_REALTIME, &end);
+  duration->first = thread_id;
+  duration->second =
+      ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+}
+
+void key_gemv_threaded_half_1(
+    half *keys_, half *queries_, half *logits_, int const q_head_num,
+    int const kv_head_num, int const batch_size, int const K, int const Dh,
+    int const keys_head_offset, int const keys_batch_offset,
+    int const queries_head_offset, int const queries_batch_offset,
+    int const logits_head_offset, int const logits_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx, std::atomic<bool> *ready_flag,
+    std::atomic<bool> *finished_flag, pair_tr *duration) {
+  struct timespec start, end;
+  keys_half = keys_;
+  queries_half = queries_;
+  logits_half = logits_;
+  const int last_case = K % 16;
+  // [ ] Reduce memory footprint
+  const int q_per_kv = q_head_num / kv_head_num;
+  //   printf("q_per_kv: %d\n", q_per_kv);
+  // DEBUG
+  //   printf("lastcase %d\n", last_case);
+
+  while (!(ready_flag->load(std::memory_order_acquire))) {
+    // // Multiply and Add
+    // for (int idx = start_idx; idx < end_idx; ++idx) {
+    //   for (int k = 0; k < K; k += 16) {
+    //     bool is_remainder = k + 16 > K;
+    //     for (int q_head_idx = 0; q_head_idx < q_head_num; ++q_head_idx) {
+    //       //   const int i_q = idx / batch_size;
+    //       //   const int i_kv = i_q / q_per_kv;
+    //       //   int j = idx % batch_size;
+    //       int const kv_head_idx = q_head_idx / q_per_kv;
+
+    //       if (is_remainder) {
+    //         switch (last_case) {
+    //           case 1:
+    //             gemv_1_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+    //             break;
+    //           case 2:
+    //             gemv_2_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+    //             break;
+    //           case 3:
+    //             gemv_3_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+    //             break;
+    //           case 4:
+    //             gemv_4_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+    //             break;
+    //           case 5:
+    //             gemv_5_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+    //             break;
+    //           case 6:
+    //             gemv_6_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 7:
+    //             gemv_7_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 8:
+    //             gemv_8_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 9:
+    //             gemv_9_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                         queries_head_offset, queries_batch_offset,
+    //                         keys_head_offset, keys_batch_offset,
+    //                         logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 10:
+    //             gemv_10_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                          queries_head_offset, queries_batch_offset,
+    //                          keys_head_offset, keys_batch_offset,
+    //                          logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 11:
+    //             gemv_11_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                          queries_head_offset, queries_batch_offset,
+    //                          keys_head_offset, keys_batch_offset,
+    //                          logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 12:
+    //             gemv_12_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                          queries_head_offset, queries_batch_offset,
+    //                          keys_head_offset, keys_batch_offset,
+    //                          logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 13:
+    //             gemv_13_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                          queries_head_offset, queries_batch_offset,
+    //                          keys_head_offset, keys_batch_offset,
+    //                          logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 14:
+    //             gemv_14_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                          queries_head_offset, queries_batch_offset,
+    //                          keys_head_offset, keys_batch_offset,
+    //                          logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           case 15:
+    //             gemv_15_half(k, Dh, q_head_idx, kv_head_idx, idx,
+    //                          queries_head_offset, queries_batch_offset,
+    //                          keys_head_offset, keys_batch_offset,
+    //                          logits_head_offset, logits_batch_offset);
+
+    //             break;
+    //           default:
+    //             break;
+    //         }
+    //       } else {
+    //         __m256 c00 = _mm256_setzero_ps();
+    //         __m256 c01 = _mm256_setzero_ps();
+    //         __m256 c02 = _mm256_setzero_ps();
+    //         __m256 c03 = _mm256_setzero_ps();
+    //         __m256 c04 = _mm256_setzero_ps();
+    //         __m256 c05 = _mm256_setzero_ps();
+    //         __m256 c06 = _mm256_setzero_ps();
+    //         __m256 c07 = _mm256_setzero_ps();
+    //         __m256 c08 = _mm256_setzero_ps();
+    //         __m256 c09 = _mm256_setzero_ps();
+    //         __m256 c10 = _mm256_setzero_ps();
+    //         __m256 c11 = _mm256_setzero_ps();
+    //         __m256 c12 = _mm256_setzero_ps();
+    //         __m256 c13 = _mm256_setzero_ps();
+    //         __m256 c14 = _mm256_setzero_ps();
+    //         __m256 c15 = _mm256_setzero_ps();
+
+    //         for (int l = 0; l < Dh; l += 8) {
+    //           // Prefetching the next query and keys for the next iteration
+    //           // if (l + 8 < Dh)
+    //           //   _mm_prefetch((const char*)(queries + i * q_haed_offset +
+    //           //                              j * q_batch_offset + l + 8),
+    //           //                _MM_HINT_T0);
+    //           // if (k + 8 < K)
+    //           //   _mm_prefetch(
+    //           //       (const char*)(keys + i * keys_head_offset +
+    //           //                     j * keys_batch_offset + (k + 8) * Dh +
+    //           l),
+    //           //       _MM_HINT_T0);
+
+    //           __m256 q0 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(queries_half + q_head_idx * queries_head_offset
+    //               +
+    //                           idx * queries_batch_offset + l)));
+
+    //           __m256 k0 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + k * Dh + l)));
+    //           __m256 k1 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 1) * Dh + l)));
+    //           __m256 k2 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 2) * Dh + l)));
+    //           __m256 k3 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 3) * Dh + l)));
+    //           __m256 k4 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 4) * Dh + l)));
+    //           __m256 k5 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 5) * Dh + l)));
+    //           __m256 k6 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 6) * Dh + l)));
+    //           __m256 k7 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 7) * Dh + l)));
+    //           __m256 k8 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 8) * Dh + l)));
+    //           __m256 k9 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 9) * Dh + l)));
+    //           __m256 k10 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 10) * Dh + l)));
+    //           __m256 k11 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 11) * Dh + l)));
+    //           __m256 k12 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 12) * Dh + l)));
+    //           __m256 k13 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 13) * Dh + l)));
+    //           __m256 k14 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 14) * Dh + l)));
+    //           __m256 k15 = _mm256_cvtph_ps(_mm_load_si128(
+    //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+    //                           idx * keys_batch_offset + (k + 15) * Dh + l)));
+    //           c00 = _mm256_fmadd_ps(q0, k0, c00);
+    //           c01 = _mm256_fmadd_ps(q0, k1, c01);
+    //           c02 = _mm256_fmadd_ps(q0, k2, c02);
+    //           c03 = _mm256_fmadd_ps(q0, k3, c03);
+    //           c04 = _mm256_fmadd_ps(q0, k4, c04);
+    //           c05 = _mm256_fmadd_ps(q0, k5, c05);
+    //           c06 = _mm256_fmadd_ps(q0, k6, c06);
+    //           c07 = _mm256_fmadd_ps(q0, k7, c07);
+    //           c08 = _mm256_fmadd_ps(q0, k8, c08);
+    //           c09 = _mm256_fmadd_ps(q0, k9, c09);
+    //           c10 = _mm256_fmadd_ps(q0, k10, c10);
+    //           c11 = _mm256_fmadd_ps(q0, k11, c11);
+    //           c12 = _mm256_fmadd_ps(q0, k12, c12);
+    //           c13 = _mm256_fmadd_ps(q0, k13, c13);
+    //           c14 = _mm256_fmadd_ps(q0, k14, c14);
+    //           c15 = _mm256_fmadd_ps(q0, k15, c15);
+    //         }
+    //         // Store the accumulated result back into the result array
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k] =
+    //         //     __float2half(hsum(c00));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 1] =
+    //         //     __float2half(hsum(c01));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 2] =
+    //         //     __float2half(hsum(c02));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 3] =
+    //         //     __float2half(hsum(c03));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 4] =
+    //         //     __float2half(hsum(c04));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 5] =
+    //         //     __float2half(hsum(c05));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 6] =
+    //         //     __float2half(hsum(c06));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 7] =
+    //         //     __float2half(hsum(c07));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 8] =
+    //         //     __float2half(hsum(c08));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 9] =
+    //         //     __float2half(hsum(c09));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 10] =
+    //         //     __float2half(hsum(c10));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 11] =
+    //         //     __float2half(hsum(c11));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 12] =
+    //         //     __float2half(hsum(c12));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 13] =
+    //         //     __float2half(hsum(c13));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 14] =
+    //         //     __float2half(hsum(c14));
+    //         // logits_half[q_head_idx * logits_head_offset +
+    //         //             idx * logits_batch_offset + k + 15] =
+    //         //     __float2half(hsum(c15));
+    //       }
+    //     }
+    //   }
+    // }
+  }
+  clock_gettime(CLOCK_REALTIME, &start);
+  // clock_gettime(CLOCK_MONOTONIC, &start);
+
+  // Multiply and Add
+  for (int idx = start_idx; idx < end_idx; ++idx) {
+    for (int k = 0; k < K; k += 16) {
+      bool is_remainder = k + 16 > K;
+      for (int q_head_idx = 0; q_head_idx < q_head_num; ++q_head_idx) {
+        //   const int i_q = idx / batch_size;
+        //   const int i_kv = i_q / q_per_kv;
+        //   int j = idx % batch_size;
+        int const kv_head_idx = q_head_idx / q_per_kv;
+
+        if (is_remainder) {
+          switch (last_case) {
+            case 1:
+              gemv_1_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+              break;
+            case 2:
+              gemv_2_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+              break;
+            case 3:
+              gemv_3_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+              break;
+            case 4:
+              gemv_4_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+              break;
+            case 5:
+              gemv_5_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+              break;
+            case 6:
+              gemv_6_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+
+              break;
+            case 7:
+              gemv_7_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+
+              break;
+            case 8:
+              gemv_8_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+
+              break;
+            case 9:
+              gemv_9_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                          queries_head_offset, queries_batch_offset,
+                          keys_head_offset, keys_batch_offset,
+                          logits_head_offset, logits_batch_offset);
+
+              break;
+            case 10:
+              gemv_10_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                           queries_head_offset, queries_batch_offset,
+                           keys_head_offset, keys_batch_offset,
+                           logits_head_offset, logits_batch_offset);
+
+              break;
+            case 11:
+              gemv_11_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                           queries_head_offset, queries_batch_offset,
+                           keys_head_offset, keys_batch_offset,
+                           logits_head_offset, logits_batch_offset);
+
+              break;
+            case 12:
+              gemv_12_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                           queries_head_offset, queries_batch_offset,
+                           keys_head_offset, keys_batch_offset,
+                           logits_head_offset, logits_batch_offset);
+
+              break;
+            case 13:
+              gemv_13_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                           queries_head_offset, queries_batch_offset,
+                           keys_head_offset, keys_batch_offset,
+                           logits_head_offset, logits_batch_offset);
+
+              break;
+            case 14:
+              gemv_14_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                           queries_head_offset, queries_batch_offset,
+                           keys_head_offset, keys_batch_offset,
+                           logits_head_offset, logits_batch_offset);
+
+              break;
+            case 15:
+              gemv_15_half(k, Dh, q_head_idx, kv_head_idx, idx,
+                           queries_head_offset, queries_batch_offset,
+                           keys_head_offset, keys_batch_offset,
+                           logits_head_offset, logits_batch_offset);
+
+              break;
+            default:
+              break;
+          }
+        } else {
+          __m256 c00 = _mm256_setzero_ps();
+          __m256 c01 = _mm256_setzero_ps();
+          __m256 c02 = _mm256_setzero_ps();
+          __m256 c03 = _mm256_setzero_ps();
+          __m256 c04 = _mm256_setzero_ps();
+          __m256 c05 = _mm256_setzero_ps();
+          __m256 c06 = _mm256_setzero_ps();
+          __m256 c07 = _mm256_setzero_ps();
+          __m256 c08 = _mm256_setzero_ps();
+          __m256 c09 = _mm256_setzero_ps();
+          __m256 c10 = _mm256_setzero_ps();
+          __m256 c11 = _mm256_setzero_ps();
+          __m256 c12 = _mm256_setzero_ps();
+          __m256 c13 = _mm256_setzero_ps();
+          __m256 c14 = _mm256_setzero_ps();
+          __m256 c15 = _mm256_setzero_ps();
+
+          for (int l = 0; l < Dh; l += 8) {
+            // Prefetching the next query and keys for the next iteration
+            // if (l + 8 < Dh)
+            //   _mm_prefetch((const char*)(queries + i * q_haed_offset +
+            //                              j * q_batch_offset + l + 8),
+            //                _MM_HINT_T0);
+            // if (k + 8 < K)
+            //   _mm_prefetch(
+            //       (const char*)(keys + i * keys_head_offset +
+            //                     j * keys_batch_offset + (k + 8) * Dh + l),
+            //       _MM_HINT_T0);
+
+            __m256 q0 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(queries_half + q_head_idx * queries_head_offset +
+                            idx * queries_batch_offset + l)));
+
+            __m256 k0 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + k * Dh + l)));
+            __m256 k1 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 1) * Dh + l)));
+            __m256 k2 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 2) * Dh + l)));
+            __m256 k3 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 3) * Dh + l)));
+            __m256 k4 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 4) * Dh + l)));
+            __m256 k5 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 5) * Dh + l)));
+            __m256 k6 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 6) * Dh + l)));
+            __m256 k7 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 7) * Dh + l)));
+            __m256 k8 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 8) * Dh + l)));
+            __m256 k9 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 9) * Dh + l)));
+            __m256 k10 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 10) * Dh + l)));
+            __m256 k11 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 11) * Dh + l)));
+            __m256 k12 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 12) * Dh + l)));
+            __m256 k13 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 13) * Dh + l)));
+            __m256 k14 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 14) * Dh + l)));
+            __m256 k15 = _mm256_cvtph_ps(_mm_load_si128(
+                (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
+                            idx * keys_batch_offset + (k + 15) * Dh + l)));
+            c00 = _mm256_fmadd_ps(q0, k0, c00);
+            c01 = _mm256_fmadd_ps(q0, k1, c01);
+            c02 = _mm256_fmadd_ps(q0, k2, c02);
+            c03 = _mm256_fmadd_ps(q0, k3, c03);
+            c04 = _mm256_fmadd_ps(q0, k4, c04);
+            c05 = _mm256_fmadd_ps(q0, k5, c05);
+            c06 = _mm256_fmadd_ps(q0, k6, c06);
+            c07 = _mm256_fmadd_ps(q0, k7, c07);
+            c08 = _mm256_fmadd_ps(q0, k8, c08);
+            c09 = _mm256_fmadd_ps(q0, k9, c09);
+            c10 = _mm256_fmadd_ps(q0, k10, c10);
+            c11 = _mm256_fmadd_ps(q0, k11, c11);
+            c12 = _mm256_fmadd_ps(q0, k12, c12);
+            c13 = _mm256_fmadd_ps(q0, k13, c13);
+            c14 = _mm256_fmadd_ps(q0, k14, c14);
+            c15 = _mm256_fmadd_ps(q0, k15, c15);
+          }
+          // Store the accumulated result back into the result array
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k] = __float2half(hsum(c00));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 1] =
+              __float2half(hsum(c01));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 2] =
+              __float2half(hsum(c02));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 3] =
+              __float2half(hsum(c03));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 4] =
+              __float2half(hsum(c04));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 5] =
+              __float2half(hsum(c05));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 6] =
+              __float2half(hsum(c06));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 7] =
+              __float2half(hsum(c07));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 8] =
+              __float2half(hsum(c08));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 9] =
+              __float2half(hsum(c09));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 10] =
+              __float2half(hsum(c10));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 11] =
+              __float2half(hsum(c11));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 12] =
+              __float2half(hsum(c12));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 13] =
+              __float2half(hsum(c13));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 14] =
+              __float2half(hsum(c14));
+          logits_half[q_head_idx * logits_head_offset +
+                      idx * logits_batch_offset + k + 15] =
+              __float2half(hsum(c15));
+        }
       }
     }
   }
@@ -3200,16 +4170,15 @@ void prepare_value_gemv(float *values, float *logits, float *result,
 }
 
 void prepare_value_gemv_half(
-    half *values, half *logits, half *result, int const head_num,
-    int const batch_size, int const K, int const Dh,
+    half *values, half *logits, half *result, int const q_head_num,
+    int const kv_head_num, int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
     int const logits_head_offset, int const logits_batch_offset,
     int const result_head_offset, int const result_batch_offset,
     int const thread_num) {
-  // printf("Ready Flag: %p\n", &ready_flag);
-  // printf("Done Flag: %p\n", &done_flag);
   // Each thread works on its slice
-  int const total_work = head_num * batch_size;
+  //   int const total_work = q_head_num * batch_size;
+  int const total_work = batch_size;
   int const work_per_thread = total_work / thread_num;
   int const work_remained = total_work % thread_num;
 
@@ -3230,11 +4199,11 @@ void prepare_value_gemv_half(
     acc += 1;
     // int cpu_id = t;
     threads.emplace_back(
-        value_gemv_threaded_half, values, logits, result, head_num, batch_size,
-        K, Dh, values_head_offset, values_batch_offset, logits_head_offset,
-        logits_batch_offset, result_head_offset, result_batch_offset, cpu_id,
-        thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t],
-        &thread_results[t]);
+        value_gemv_threaded_half_1, values, logits, result, q_head_num,
+        kv_head_num, batch_size, K, Dh, values_head_offset, values_batch_offset,
+        logits_head_offset, logits_batch_offset, result_head_offset,
+        result_batch_offset, cpu_id, thread_num, start_idx, end_idx,
+        &ready_flag, &finished_flags[t], &thread_results[t]);
 
     // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
@@ -3291,17 +4260,16 @@ void prepare_value_gemv_half(
   // clock_gettime(CLOCK_REALTIME, &_end);
   clock_gettime(CLOCK_MONOTONIC, &_end);
   done_flag.store(true, std::memory_order_release);
-  // DEBUGGING
-  // std::sort(
-  //     thread_results, thread_results + thread_num,
-  //     [](const pair_tr &i, const pair_tr &j) { return i.second < j.second;
-  //     });
-  // for (size_t i = 0; i < thread_num; i++)
-  //   printf("CPU: %d, duration: %ld\n", thread_results[i].first,
-  //          thread_results[i].second);
+  // DEBUG
+  std::sort(
+      thread_results, thread_results + thread_num,
+      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
+  for (size_t i = 0; i < thread_num; i++)
+    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+           thread_results[i].second);
 
-  // printf("Variance: %ld\n",
-  //        thread_results[thread_num - 1].second - thread_results[0].second);
+  printf("Variance: %ld\n",
+         thread_results[thread_num - 1].second - thread_results[0].second);
   for (auto &thread : threads) thread.join();
 }
 
@@ -3314,8 +4282,6 @@ void prepare_key_gemv(float *keys, float *queries, float *logits,
                       int const queries_batch_offset,
                       int const logits_head_offset,
                       int const logits_batch_offset, int const thread_num) {
-  // printf("Ready Flag: %p\n", &ready_flag);
-  // printf("Done Flag: %p\n", &done_flag);
   // Each thread works on its slice
   int const total_work = head_num * batch_size;
   int const work_per_thread = total_work / thread_num;
@@ -3415,13 +4381,15 @@ void prepare_key_gemv(float *keys, float *queries, float *logits,
 
 // Function to prepare the threads for Key GEMV
 void prepare_key_gemv_half(
-    half *keys, half *queries, half *logits, int const head_num,
-    int const batch_size, int const K, int const Dh, int const keys_head_offset,
-    int const keys_batch_offset, int const queries_head_offset,
-    int const queries_batch_offset, int const logits_head_offset,
-    int const logits_batch_offset, int const thread_num) {
+    half *keys, half *queries, half *logits, int const q_head_num,
+    int const kv_head_num, int const batch_size, int const K, int const Dh,
+    int const keys_head_offset, int const keys_batch_offset,
+    int const queries_head_offset, int const queries_batch_offset,
+    int const logits_head_offset, int const logits_batch_offset,
+    int const thread_num) {
   // Each thread works on its slice
-  int const total_work = head_num * batch_size;
+  //   int const total_work = q_head_num * batch_size;
+  int const total_work = batch_size;
   int const work_per_thread = total_work / thread_num;
   int const work_remained = total_work % thread_num;
 
@@ -3440,12 +4408,12 @@ void prepare_key_gemv_half(
                                 : start_idx + work_per_thread;
     int cpu_id = t + acc;
     acc += 1;
-    threads.emplace_back(key_gemv_threaded_half, keys, queries, logits,
-                         head_num, batch_size, K, Dh, keys_head_offset,
-                         keys_batch_offset, queries_head_offset,
-                         queries_batch_offset, logits_head_offset,
-                         logits_batch_offset, t, thread_num, start_idx, end_idx,
-                         &ready_flag, &finished_flags[t], &thread_results[t]);
+    threads.emplace_back(
+        key_gemv_threaded_half_1, keys, queries, logits, q_head_num,
+        kv_head_num, batch_size, K, Dh, keys_head_offset, keys_batch_offset,
+        queries_head_offset, queries_batch_offset, logits_head_offset,
+        logits_batch_offset, t, thread_num, start_idx, end_idx, &ready_flag,
+        &finished_flags[t], &thread_results[t]);
 
     // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
@@ -3500,16 +4468,15 @@ void prepare_key_gemv_half(
   clock_gettime(CLOCK_MONOTONIC, &_end);
   done_flag.store(true, std::memory_order_release);
   // DEBUGGING
-  // std::sort(
-  //     thread_results, thread_results + thread_num,
-  //     [](const pair_tr &i, const pair_tr &j) { return i.second < j.second;
-  //     });
-  // for (size_t i = 0; i < thread_num; i++)
-  //   printf("CPU: %d, duration: %ld\n", thread_results[i].first,
-  //          thread_results[i].second);
+  std::sort(
+      thread_results, thread_results + thread_num,
+      [](const pair_tr &i, const pair_tr &j) { return i.second < j.second; });
+  for (size_t i = 0; i < thread_num; i++)
+    printf("CPU: %d, duration: %ld\n", thread_results[i].first,
+           thread_results[i].second);
 
-  // printf("Variance: %ld\n",
-  //        thread_results[thread_num - 1].second - thread_results[0].second);
+  printf("Variance: %ld\n",
+         thread_results[thread_num - 1].second - thread_results[0].second);
   for (auto &thread : threads) thread.join();
 }
 
@@ -3669,8 +4636,8 @@ void set_ready_flag() {
 long is_finished() {
   while (!done_flag.load(std::memory_order_acquire)) {
   }
-  // clock_gettime(CLOCK_REALTIME, &_end);
-  clock_gettime(CLOCK_MONOTONIC, &_end_1);
+  clock_gettime(CLOCK_REALTIME, &_end);
+  //   clock_gettime(CLOCK_MONOTONIC, &_end_1);
   long seconds = _end.tv_sec - _start.tv_sec;
   long nanoseconds = _end.tv_nsec - _start.tv_nsec;
   // Handle case where nanoseconds roll over
@@ -3683,9 +4650,23 @@ long is_finished() {
   // 1e9) * 1e6;
 }
 
-void wait_finished() {
+long wait_finished() {
   while (!done_flag.load(std::memory_order_acquire)) {
   }
+  clock_gettime(CLOCK_REALTIME, &_end);
+  //   return ((_end.tv_sec - _start.tv_sec) +
+  //           (_end.tv_nsec - _start.tv_nsec) / 1e9) *
+  //          1e6;
+  return (_end.tv_sec - _start.tv_sec) + (_end.tv_nsec - _start.tv_nsec);
+  //   //   clock_gettime(CLOCK_MONOTONIC, &_end_1);
+  //   long seconds = _end.tv_sec - _start.tv_sec;
+  //   long nanoseconds = _end.tv_nsec - _start.tv_nsec;
+  //   // Handle case where nanoseconds roll over
+  //   if (nanoseconds < 0) {
+  //     --seconds;
+  //     nanoseconds += 1000000000;
+  //   }
+  //   return seconds * 1e9 + nanoseconds;
 }
 
 double get_duration() {
