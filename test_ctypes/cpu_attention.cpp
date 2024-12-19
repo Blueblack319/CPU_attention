@@ -2828,7 +2828,7 @@ void value_gemv_threaded_half(
       ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
 }
 
-void value_gemv_threaded_half_only_batch(
+void value_gemv_threaded_half_1(
     half *values_, half *logits_, half *results_, int const q_head_num,
     int const kv_head_num, int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
@@ -3024,6 +3024,241 @@ void value_gemv_threaded_half_only_batch(
   //   duration->second = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
 }
 
+void value_gemv_threaded_half_3(
+    half *values_, half *logits_, half *results_, const uint16_t *topk_indices,
+    int const topk_num, int const q_head_num, int const kv_head_num,
+    int const batch_size, int const K, int const Dh,
+    int const values_head_offset, int const values_batch_offset,
+    int const logits_haed_offset, int const logits_batch_offset,
+    int const result_head_offset, int const result_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx, std::atomic<bool> *ready_flag,
+    std::atomic<bool> *finished_flag, pair_tr *duration) {
+  struct timespec start, end;
+  values_half = values_;
+  logits_half = logits_;
+  results_half = results_;
+
+  const int q_per_kv = q_head_num / kv_head_num;
+
+  while (!(ready_flag->load(std::memory_order_acquire))) {
+  }
+  clock_gettime(CLOCK_REALTIME, &start);
+
+  // Multiply and Add
+  for (int k_idx = start_idx; k_idx < end_idx; ++k_idx) {  // Top-k index
+    for (int idx = 0; idx < topk_num; ++idx) {             // Batch index
+      int const k = topk_indices[k_idx];
+
+      __m256 c00 = _mm256_setzero_ps();
+      __m256 c01 = _mm256_setzero_ps();
+      __m256 c02 = _mm256_setzero_ps();
+      __m256 c03 = _mm256_setzero_ps();
+      __m256 c04 = _mm256_setzero_ps();
+      __m256 c05 = _mm256_setzero_ps();
+      __m256 c06 = _mm256_setzero_ps();
+      __m256 c07 = _mm256_setzero_ps();
+      __m256 c08 = _mm256_setzero_ps();
+      __m256 c09 = _mm256_setzero_ps();
+      __m256 c10 = _mm256_setzero_ps();
+      __m256 c11 = _mm256_setzero_ps();
+      __m256 c12 = _mm256_setzero_ps();
+      __m256 c13 = _mm256_setzero_ps();
+      __m256 c14 = _mm256_setzero_ps();
+      __m256 c15 = _mm256_setzero_ps();
+
+      for (int q_head_idx = 0; q_head_idx < q_head_num;
+           ++q_head_idx) {                              // Head index
+        int const kv_head_idx = q_head_idx / q_per_kv;  // 0 1 2 3 -> 0 1 2 3
+
+        float logit =
+            __half2float(logits_half[q_head_idx * logits_haed_offset +
+                                     idx * logits_batch_offset + k_idx]);
+        __m256 logit_vec = _mm256_set1_ps(logit);
+
+        // if (k + 1 < K) {
+        //   _mm_prefetch(
+        //       (const char *)(values_half + kv_head_idx * values_head_offset +
+        //                      idx * values_batch_offset + (k + 1) * Dh),
+        //       _MM_HINT_T0);
+        // }
+        __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh)));
+        __m256 v01 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 8)));
+        __m256 v02 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 16)));
+        __m256 v03 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 24)));
+        __m256 v04 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 32)));
+        __m256 v05 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 40)));
+        __m256 v06 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 48)));
+        __m256 v07 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 56)));
+        __m256 v08 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 64)));
+        __m256 v09 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 72)));
+        __m256 v10 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 80)));
+        __m256 v11 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 88)));
+        __m256 v12 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 96)));
+        __m256 v13 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 104)));
+        __m256 v14 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 112)));
+        __m256 v15 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 120)));
+        c00 = _mm256_fmadd_ps(logit_vec, v00, c00);
+        c01 = _mm256_fmadd_ps(logit_vec, v01, c01);
+        c02 = _mm256_fmadd_ps(logit_vec, v02, c02);
+        c03 = _mm256_fmadd_ps(logit_vec, v03, c03);
+        c04 = _mm256_fmadd_ps(logit_vec, v04, c04);
+        c05 = _mm256_fmadd_ps(logit_vec, v05, c05);
+        c06 = _mm256_fmadd_ps(logit_vec, v06, c06);
+        c07 = _mm256_fmadd_ps(logit_vec, v07, c07);
+        c08 = _mm256_fmadd_ps(logit_vec, v08, c08);
+        c09 = _mm256_fmadd_ps(logit_vec, v09, c09);
+        c10 = _mm256_fmadd_ps(logit_vec, v10, c10);
+        c11 = _mm256_fmadd_ps(logit_vec, v11, c11);
+        c12 = _mm256_fmadd_ps(logit_vec, v12, c12);
+        c13 = _mm256_fmadd_ps(logit_vec, v13, c13);
+        c14 = _mm256_fmadd_ps(logit_vec, v14, c14);
+        c15 = _mm256_fmadd_ps(logit_vec, v15, c15);
+
+        if (kv_head_idx == 3) {
+          // Store the accumulated result back into the result array
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset),
+              _mm256_cvtps_ph(c00,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 8),
+              _mm256_cvtps_ph(c01,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 16),
+              _mm256_cvtps_ph(c02,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 24),
+              _mm256_cvtps_ph(c03,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 32),
+              _mm256_cvtps_ph(c04,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 40),
+              _mm256_cvtps_ph(c05,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 48),
+              _mm256_cvtps_ph(c06,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 56),
+              _mm256_cvtps_ph(c07,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 64),
+              _mm256_cvtps_ph(c08,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 72),
+              _mm256_cvtps_ph(c09,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 80),
+              _mm256_cvtps_ph(c10,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 88),
+              _mm256_cvtps_ph(c11,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 96),
+              _mm256_cvtps_ph(c12,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 104),
+              _mm256_cvtps_ph(c13,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 112),
+              _mm256_cvtps_ph(c14,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+          _mm_store_si128(
+              (__m128i *)(results_half + q_head_idx * result_head_offset +
+                          idx * result_batch_offset + 120),
+              _mm256_cvtps_ph(c15,
+                              _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
+
+          c00 = _mm256_setzero_ps();
+          c01 = _mm256_setzero_ps();
+          c02 = _mm256_setzero_ps();
+          c03 = _mm256_setzero_ps();
+          c04 = _mm256_setzero_ps();
+          c05 = _mm256_setzero_ps();
+          c06 = _mm256_setzero_ps();
+          c07 = _mm256_setzero_ps();
+          c08 = _mm256_setzero_ps();
+          c09 = _mm256_setzero_ps();
+          c10 = _mm256_setzero_ps();
+          c11 = _mm256_setzero_ps();
+          c12 = _mm256_setzero_ps();
+          c13 = _mm256_setzero_ps();
+          c14 = _mm256_setzero_ps();
+          c15 = _mm256_setzero_ps();
+        }
+      }
+    }
+  }
+  // Mark this thread as finished
+  finished_flag->store(true, std::memory_order_release);
+  clock_gettime(CLOCK_REALTIME, &end);
+  duration->first = thread_id;
+  duration->second =
+      ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+  //   duration->second = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
+}
+
 void value_bandwidth_test_1(
     half *values_, half *logits_, half *results_, const uint16_t *topk_indices,
     int const topk_num, int const q_head_num, int const kv_head_num,
@@ -3062,7 +3297,8 @@ void value_bandwidth_test_1(
 
         // if (k + 1 < K) {
         //   _mm_prefetch(
-        //       (const char *)(values_half + kv_head_idx * values_head_offset +
+        //       (const char *)(values_half + kv_head_idx * values_head_offset
+        //       +
         //                      idx * values_batch_offset + (k + 1) * Dh),
         //       _MM_HINT_T0);
         // }
@@ -3859,7 +4095,8 @@ void key_gemv_threaded_half_1(
     //           //       _MM_HINT_T0);
 
     //           __m256 q0 = _mm256_cvtph_ps(_mm_load_si128(
-    //               (__m128i *)(queries_half + q_head_idx * queries_head_offset
+    //               (__m128i *)(queries_half + q_head_idx *
+    //               queries_head_offset
     //               +
     //                           idx * queries_batch_offset + l)));
 
@@ -3868,49 +4105,64 @@ void key_gemv_threaded_half_1(
     //                           idx * keys_batch_offset + k * Dh + l)));
     //           __m256 k1 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 1) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 1) * Dh +
+    //                           l)));
     //           __m256 k2 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 2) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 2) * Dh +
+    //                           l)));
     //           __m256 k3 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 3) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 3) * Dh +
+    //                           l)));
     //           __m256 k4 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 4) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 4) * Dh +
+    //                           l)));
     //           __m256 k5 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 5) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 5) * Dh +
+    //                           l)));
     //           __m256 k6 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 6) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 6) * Dh +
+    //                           l)));
     //           __m256 k7 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 7) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 7) * Dh +
+    //                           l)));
     //           __m256 k8 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 8) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 8) * Dh +
+    //                           l)));
     //           __m256 k9 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 9) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 9) * Dh +
+    //                           l)));
     //           __m256 k10 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 10) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 10) * Dh +
+    //                           l)));
     //           __m256 k11 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 11) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 11) * Dh +
+    //                           l)));
     //           __m256 k12 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 12) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 12) * Dh +
+    //                           l)));
     //           __m256 k13 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 13) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 13) * Dh +
+    //                           l)));
     //           __m256 k14 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 14) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 14) * Dh +
+    //                           l)));
     //           __m256 k15 = _mm256_cvtph_ps(_mm_load_si128(
     //               (__m128i *)(keys_half + kv_head_idx * keys_head_offset +
-    //                           idx * keys_batch_offset + (k + 15) * Dh + l)));
+    //                           idx * keys_batch_offset + (k + 15) * Dh +
+    //                           l)));
     //           c00 = _mm256_fmadd_ps(q0, k0, c00);
     //           c01 = _mm256_fmadd_ps(q0, k1, c01);
     //           c02 = _mm256_fmadd_ps(q0, k2, c02);
@@ -4497,11 +4749,12 @@ void prepare_value_gemv_half(
     acc += 1;
     // int cpu_id = t;
     threads.emplace_back(
-        value_bandwidth_test_3, values, logits, result, topk_indices, topk_num,
-        q_head_num, kv_head_num, batch_size, K, Dh, values_head_offset,
-        values_batch_offset, logits_head_offset, logits_batch_offset,
-        result_head_offset, result_batch_offset, cpu_id, thread_num, start_idx,
-        end_idx, &ready_flag, &finished_flags[t], &thread_results[t]);
+        value_gemv_threaded_half_3, values, logits, result, topk_indices,
+        topk_num, q_head_num, kv_head_num, batch_size, K, Dh,
+        values_head_offset, values_batch_offset, logits_head_offset,
+        logits_batch_offset, result_head_offset, result_batch_offset, cpu_id,
+        thread_num, start_idx, end_idx, &ready_flag, &finished_flags[t],
+        &thread_results[t]);
 
     // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
@@ -4797,9 +5050,9 @@ void softmax_trusted_threads(float *qk, const float *max_values,
     const int head_idx = idx / batch_size;
     const int batch_idx = idx % batch_size;
     // printf(
-    //     "start_idx: %d, end_idx: %d, head_idx: %d, batch_idx: %d, Index: %d,
-    //     " "batch_size: %d\n", start_idx, end_idx, head_idx, batch_idx, idx,
-    //     batch_size, idx / static_cast<int>(batch_size));
+    //     "start_idx: %d, end_idx: %d, head_idx: %d, batch_idx: %d, Index:
+    //     %d, " "batch_size: %d\n", start_idx, end_idx, head_idx, batch_idx,
+    //     idx, batch_size, idx / static_cast<int>(batch_size));
     const float sum = sums_quant[head_idx * batch_size + batch_idx];
     const float max = max_values[head_idx * batch_size + batch_idx];
 

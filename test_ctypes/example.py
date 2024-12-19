@@ -366,46 +366,6 @@ def test_value_gemv(batch_size, S_len, ratio, thread_num, is_gqa, dtype=np.float
         f"BS: {batch_size}, S: {S_len}, Top-k ratio: {ratio}, Dh: {Dh}, q_head_num: {q_head_num}, kv_head_num: {kv_head_num}, thread_num: {thread_num}"
     )
 
-    ############################################
-    # (head, batch, S_len, Dh) version
-    # kv_head_offset = batch_size * K * Dh
-    # kv_batch_offset = K * Dh
-    # logits_queries_head_offset = batch_size * K
-    # logits_queries_batch_offset = K
-    # out_logits_head_offset = batch_size * Dh
-    # out_logits_batch_offset = Dh
-
-    # # Allocate memory
-    # if dtype == np.float16:
-    #     # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
-    #     values = aligned_array(
-    #         (kv_head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
-    #     )
-    #     logits = aligned_array(
-    #         (q_head_num, batch_size, K), dtype=np.float16, alignment=64
-    #     )
-    #     result = aligned_array(
-    #         (q_head_num, batch_size, Dh), dtype=np.float16, alignment=64
-    #     )
-    #     # Fill values and logits with random values
-    #     values[:] = np.random.rand(*values.shape).astype(np.float16)
-    #     logits[:] = np.random.rand(*logits.shape).astype(np.float16)
-
-    #     # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
-    #     assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
-    #     assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
-    #     assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
-    # else:
-    #     # Memory-aligned allocation using Torch
-    #     values = torch.rand(kv_head_num * batch_size, K, Dh, dtype=dtype)
-    #     logits = torch.rand(q_head_num * batch_size, 1, K, dtype=dtype)
-    #     result = torch.zeros(q_head_num * batch_size, 1, Dh, dtype=dtype)
-
-    #     # Check memory alignment
-    #     assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
-    #     assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
-    #     assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
-
     # Allocate memory
     (
         values,
@@ -427,41 +387,7 @@ def test_value_gemv(batch_size, S_len, ratio, thread_num, is_gqa, dtype=np.float
         Dh,
         dtype,
     )
-    # if dtype == np.float16:
-    #     topk_indices = np.random.randint(0, S_len, size=topk_num, dtype=np.uint16)
-    #     # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
-    #     values = aligned_array(
-    #         (batch_size, kv_head_num, S_len, Dh), dtype=np.float16, alignment=64
-    #     )
-    #     logits = aligned_array(
-    #         (batch_size, q_head_num, S_len), dtype=np.float16, alignment=64
-    #     )
-    #     result = aligned_array(
-    #         (batch_size, q_head_num, Dh), dtype=np.float16, alignment=64
-    #     )
-    #     # Fill values and logits with random values
-    #     values[:] = np.random.rand(*values.shape).astype(np.float16)
-    #     logits[:] = np.random.rand(*logits.shape).astype(np.float16)
 
-    #     # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
-    #     assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
-    #     assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
-    #     assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
-    # else:
-    #     topk_indices, _ = torch.sort(
-    #         torch.randint(0, S_len - 1, (topk_num,), dtype=torch.int16)
-    #     )
-    #     # Memory-aligned allocation using Torch
-    #     values = torch.rand(batch_size * kv_head_num, S_len, Dh, dtype=dtype)
-    #     logits = torch.rand(batch_size * q_head_num, 1, S_len, dtype=dtype)
-    #     result = torch.zeros(batch_size * q_head_num, 1, Dh, dtype=dtype)
-
-    #     # Check memory alignment
-    #     assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
-    #     assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
-    #     assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
-
-    ############################################
     total_sec = 0
     for _ in range(ITER):
         nano_sec = test_gemv(
@@ -523,33 +449,33 @@ def test_value_gemv(batch_size, S_len, ratio, thread_num, is_gqa, dtype=np.float
         # print(f"MAE: {mae}")
         ##########################################
 
-        # Allocate memory
-        # if dtype == np.float16:
-        #     topk_indices = np.random.randint(0, S_len, size=topk_num, dtype=np.uint16)
-        # else:
-        #     topk_indices, _ = torch.sort(
-        #         torch.randint(0, S_len, (topk_num,), dtype=torch.int16)
-        #     )
-        (
-            values,
-            logits,
-            result,
-            topk_indices,
-            kv_batch_offset,
-            kv_head_offset,
-            logits_queries_batch_offset,
-            logits_queries_head_offset,
-            out_logits_batch_offset,
-            out_logits_head_offset,
-        ) = layout_3_value(
-            topk_num,
-            q_head_num,
-            kv_head_num,
-            batch_size,
-            S_len,
-            Dh,
-            dtype,
-        )
+        # Change top-k indices
+        if dtype == np.float16:
+            topk_indices = np.random.randint(0, S_len, size=topk_num, dtype=np.uint16)
+        else:
+            topk_indices, _ = torch.sort(
+                torch.randint(0, S_len, (topk_num,), dtype=torch.int16)
+            )
+        # (
+        #     values,
+        #     logits,
+        #     result,
+        #     topk_indices,
+        #     kv_batch_offset,
+        #     kv_head_offset,
+        #     logits_queries_batch_offset,
+        #     logits_queries_head_offset,
+        #     out_logits_batch_offset,
+        #     out_logits_head_offset,
+        # ) = layout_3_value(
+        #     topk_num,
+        #     q_head_num,
+        #     kv_head_num,
+        #     batch_size,
+        #     S_len,
+        #     Dh,
+        #     dtype,
+        # )
         # OS-specific cache flush (Linux example)
         if os.name == "posix":
             os.system(
