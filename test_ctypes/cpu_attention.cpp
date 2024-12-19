@@ -2657,7 +2657,7 @@ void value_gemv_threaded_half(
   clock_gettime(CLOCK_REALTIME, &start);
 
   // Multiply and Add
-  for (int idx = start_idx; idx < end_idx; ++idx) {
+  for (int idx = start_idx; idx < end_idx; ++idx) {  // Index of batch * head
     const int i_q = idx / batch_size;
     const int i_kv = i_q / q_per_kv;
     const int j = idx % batch_size;
@@ -2828,7 +2828,7 @@ void value_gemv_threaded_half(
       ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
 }
 
-void value_gemv_threaded_half_1(
+void value_gemv_threaded_half_only_batch(
     half *values_, half *logits_, half *results_, int const q_head_num,
     int const kv_head_num, int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
@@ -2846,201 +2846,13 @@ void value_gemv_threaded_half_1(
   const int q_per_kv = q_head_num / kv_head_num;
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
-    // // Multiply and Add
-    // for (int idx = start_idx; idx < end_idx; ++idx) {  // batch index
-    //   for (int q_head_idx = 0; q_head_idx < q_head_num; ++q_head_idx) {
-    //     //   const int i_q = idx / batch_size;
-    //     //   const int i_kv = i_q / q_per_kv;
-    //     //   int j = idx % batch_size;
-    //     int const kv_head_idx = q_head_idx / q_per_kv;
-
-    //     __m256 c00 = _mm256_setzero_ps();
-    //     __m256 c01 = _mm256_setzero_ps();
-    //     __m256 c02 = _mm256_setzero_ps();
-    //     __m256 c03 = _mm256_setzero_ps();
-    //     __m256 c04 = _mm256_setzero_ps();
-    //     __m256 c05 = _mm256_setzero_ps();
-    //     __m256 c06 = _mm256_setzero_ps();
-    //     __m256 c07 = _mm256_setzero_ps();
-    //     __m256 c08 = _mm256_setzero_ps();
-    //     __m256 c09 = _mm256_setzero_ps();
-    //     __m256 c10 = _mm256_setzero_ps();
-    //     __m256 c11 = _mm256_setzero_ps();
-    //     __m256 c12 = _mm256_setzero_ps();
-    //     __m256 c13 = _mm256_setzero_ps();
-    //     __m256 c14 = _mm256_setzero_ps();
-    //     __m256 c15 = _mm256_setzero_ps();
-
-    //     for (int k = 0; k < K; ++k) {
-    //       float logit =
-    //           __half2float(logits_half[q_head_idx * logits_haed_offset +
-    //                                    idx * logits_batch_offset + k]);
-    //       __m256 logit_vec = _mm256_set1_ps(logit);
-
-    //       if (k + 1 < K) {
-    //         _mm_prefetch(
-    //             (const char *)(values_half + kv_head_idx * values_head_offset
-    //             +
-    //                            idx * values_batch_offset + (k + 1) * Dh),
-    //             _MM_HINT_T0);
-    //       }
-    //       __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh)));
-    //       __m256 v01 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 8)));
-    //       __m256 v02 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 16)));
-    //       __m256 v03 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 24)));
-    //       __m256 v04 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 32)));
-    //       __m256 v05 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 40)));
-    //       __m256 v06 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 48)));
-    //       __m256 v07 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 56)));
-    //       __m256 v08 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 64)));
-    //       __m256 v09 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 72)));
-    //       __m256 v10 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 80)));
-    //       __m256 v11 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 88)));
-    //       __m256 v12 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 96)));
-    //       __m256 v13 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 104)));
-    //       __m256 v14 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 112)));
-    //       __m256 v15 = _mm256_cvtph_ps(_mm_load_si128(
-    //           (__m128i *)(values_half + kv_head_idx * values_head_offset +
-    //                       idx * values_batch_offset + k * Dh + 120)));
-    //       c00 = _mm256_fmadd_ps(logit_vec, v00, c00);
-    //       c01 = _mm256_fmadd_ps(logit_vec, v01, c01);
-    //       c02 = _mm256_fmadd_ps(logit_vec, v02, c02);
-    //       c03 = _mm256_fmadd_ps(logit_vec, v03, c03);
-    //       c04 = _mm256_fmadd_ps(logit_vec, v04, c04);
-    //       c05 = _mm256_fmadd_ps(logit_vec, v05, c05);
-    //       c06 = _mm256_fmadd_ps(logit_vec, v06, c06);
-    //       c07 = _mm256_fmadd_ps(logit_vec, v07, c07);
-    //       c08 = _mm256_fmadd_ps(logit_vec, v08, c08);
-    //       c09 = _mm256_fmadd_ps(logit_vec, v09, c09);
-    //       c10 = _mm256_fmadd_ps(logit_vec, v10, c10);
-    //       c11 = _mm256_fmadd_ps(logit_vec, v11, c11);
-    //       c12 = _mm256_fmadd_ps(logit_vec, v12, c12);
-    //       c13 = _mm256_fmadd_ps(logit_vec, v13, c13);
-    //       c14 = _mm256_fmadd_ps(logit_vec, v14, c14);
-    //       c15 = _mm256_fmadd_ps(logit_vec, v15, c15);
-    //     }
-    //     // Store the accumulated result back into the result array
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset),
-    //         _mm256_cvtps_ph(c00,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 8),
-    //         _mm256_cvtps_ph(c01,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 16),
-    //         _mm256_cvtps_ph(c02,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 24),
-    //         _mm256_cvtps_ph(c03,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 32),
-    //         _mm256_cvtps_ph(c04,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 40),
-    //         _mm256_cvtps_ph(c05,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 48),
-    //         _mm256_cvtps_ph(c06,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 56),
-    //         _mm256_cvtps_ph(c07,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 64),
-    //         _mm256_cvtps_ph(c08,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 72),
-    //         _mm256_cvtps_ph(c09,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 80),
-    //         _mm256_cvtps_ph(c10,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 88),
-    //         _mm256_cvtps_ph(c11,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 96),
-    //         _mm256_cvtps_ph(c12,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 104),
-    //         _mm256_cvtps_ph(c13,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 112),
-    //         _mm256_cvtps_ph(c14,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //     _mm_store_si128(
-    //         (__m128i *)(results_half + q_head_idx * result_head_offset +
-    //                     idx * result_batch_offset + 120),
-    //         _mm256_cvtps_ph(c15,
-    //                         _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC));
-    //   }
-    // }
   }
   clock_gettime(CLOCK_REALTIME, &start);
 
   // Multiply and Add
   for (int idx = start_idx; idx < end_idx; ++idx) {  // batch index
-    for (int q_head_idx = 0; q_head_idx < q_head_num; ++q_head_idx) {
-      //   const int i_q = idx / batch_size;
-      //   const int i_kv = i_q / q_per_kv;
-      //   int j = idx % batch_size;
+    for (int q_head_idx = 0; q_head_idx < q_head_num;
+         ++q_head_idx) {  // head index
       int const kv_head_idx = q_head_idx / q_per_kv;
 
       __m256 c00 = _mm256_setzero_ps();
@@ -3212,9 +3024,10 @@ void value_gemv_threaded_half_1(
   //   duration->second = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
 }
 
-void value_bandwidth_test(
-    half *values_, half *logits_, half *results_, int const q_head_num,
-    int const kv_head_num, int const batch_size, int const K, int const Dh,
+void value_bandwidth_test_1(
+    half *values_, half *logits_, half *results_, const uint16_t *topk_indices,
+    int const topk_num, int const q_head_num, int const kv_head_num,
+    int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
     int const logits_haed_offset, int const logits_batch_offset,
     int const result_head_offset, int const result_batch_offset,
@@ -3239,34 +3052,20 @@ void value_bandwidth_test(
          ++q_head_idx) {  // head_idx
       int const kv_head_idx = q_head_idx / q_per_kv;
 
-      //   volatile __m256 c00 = _mm256_setzero_ps();
-      //   volatile __m256 c01 = _mm256_setzero_ps();
-      //   volatile __m256 c02 = _mm256_setzero_ps();
-      //   volatile __m256 c03 = _mm256_setzero_ps();
-      //   volatile __m256 c04 = _mm256_setzero_ps();
-      //   volatile __m256 c05 = _mm256_setzero_ps();
-      //   volatile __m256 c06 = _mm256_setzero_ps();
-      //   volatile __m256 c07 = _mm256_setzero_ps();
-      //   volatile __m256 c08 = _mm256_setzero_ps();
-      //   volatile __m256 c09 = _mm256_setzero_ps();
-      //   volatile __m256 c10 = _mm256_setzero_ps();
-      //   volatile __m256 c11 = _mm256_setzero_ps();
-      //   volatile __m256 c12 = _mm256_setzero_ps();
-      //   volatile __m256 c13 = _mm256_setzero_ps();
-      //   volatile __m256 c14 = _mm256_setzero_ps();
-      //   volatile __m256 c15 = _mm256_setzero_ps();
+      for (int k_idx = 0; k_idx < topk_num; ++k_idx) {
+        int const k = topk_indices[k_idx];
 
-      for (int k = 0; k < K; ++k) {
-        float logit = __half2float(logits_half[q_head_idx * logits_haed_offset +
-                                               idx * logits_batch_offset + k]);
+        volatile float logit =
+            __half2float(logits_half[q_head_idx * logits_haed_offset +
+                                     idx * logits_batch_offset + k]);
         volatile __m256 logit_vec = _mm256_set1_ps(logit);
 
-        if (k + 1 < K) {
-          _mm_prefetch(
-              (const char *)(values_half + kv_head_idx * values_head_offset +
-                             idx * values_batch_offset + (k + 1) * Dh),
-              _MM_HINT_T0);
-        }
+        // if (k + 1 < K) {
+        //   _mm_prefetch(
+        //       (const char *)(values_half + kv_head_idx * values_head_offset +
+        //                      idx * values_batch_offset + (k + 1) * Dh),
+        //       _MM_HINT_T0);
+        // }
         volatile __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
             (__m128i *)(values_half + kv_head_idx * values_head_offset +
                         idx * values_batch_offset + k * Dh)));
@@ -3315,104 +3114,7 @@ void value_bandwidth_test(
         volatile __m256 v15 = _mm256_cvtph_ps(_mm_load_si128(
             (__m128i *)(values_half + kv_head_idx * values_head_offset +
                         idx * values_batch_offset + k * Dh + 120)));
-        // c00 = _mm256_fmadd_ps(logit_vec, v00, c00);
-        // c01 = _mm256_fmadd_ps(logit_vec, v01, c01);
-        // c02 = _mm256_fmadd_ps(logit_vec, v02, c02);
-        // c03 = _mm256_fmadd_ps(logit_vec, v03, c03);
-        // c04 = _mm256_fmadd_ps(logit_vec, v04, c04);
-        // c05 = _mm256_fmadd_ps(logit_vec, v05, c05);
-        // c06 = _mm256_fmadd_ps(logit_vec, v06, c06);
-        // c07 = _mm256_fmadd_ps(logit_vec, v07, c07);
-        // c08 = _mm256_fmadd_ps(logit_vec, v08, c08);
-        // c09 = _mm256_fmadd_ps(logit_vec, v09, c09);
-        // c10 = _mm256_fmadd_ps(logit_vec, v10, c10);
-        // c11 = _mm256_fmadd_ps(logit_vec, v11, c11);
-        // c12 = _mm256_fmadd_ps(logit_vec, v12, c12);
-        // c13 = _mm256_fmadd_ps(logit_vec, v13, c13);
-        // c14 = _mm256_fmadd_ps(logit_vec, v14, c14);
-        // c15 = _mm256_fmadd_ps(logit_vec, v15, c15);
       }
-      // Store the accumulated result back into the result array
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset),
-      //       _mm256_cvtps_ph(c00, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 8),
-      //       _mm256_cvtps_ph(c01, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 16),
-      //       _mm256_cvtps_ph(c02, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 24),
-      //       _mm256_cvtps_ph(c03, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 32),
-      //       _mm256_cvtps_ph(c04, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 40),
-      //       _mm256_cvtps_ph(c05, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 48),
-      //       _mm256_cvtps_ph(c06, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 56),
-      //       _mm256_cvtps_ph(c07, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 64),
-      //       _mm256_cvtps_ph(c08, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 72),
-      //       _mm256_cvtps_ph(c09, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 80),
-      //       _mm256_cvtps_ph(c10, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 88),
-      //       _mm256_cvtps_ph(c11, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 96),
-      //       _mm256_cvtps_ph(c12, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 104),
-      //       _mm256_cvtps_ph(c13, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 112),
-      //       _mm256_cvtps_ph(c14, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
-      //   _mm_store_si128(
-      //       (__m128i *)(results_half + q_head_idx * result_head_offset +
-      //                   idx * result_batch_offset + 120),
-      //       _mm256_cvtps_ph(c15, _MM_FROUND_TO_NEAREST_INT |
-      //       _MM_FROUND_NO_EXC));
     }
   }
   // Mark this thread as finished
@@ -4576,14 +4278,15 @@ void prepare_value_gemv(float *values, float *logits, float *result,
 }
 
 void prepare_value_gemv_half(
-    half *values, half *logits, half *result, int const q_head_num,
-    int const kv_head_num, int const batch_size, int const K, int const Dh,
+    half *values, half *logits, half *result, uint16_t *topk_indices,
+    int const topk_num, int const q_head_num, int const kv_head_num,
+    int const batch_size, int const K, int const Dh,
     int const values_head_offset, int const values_batch_offset,
     int const logits_head_offset, int const logits_batch_offset,
     int const result_head_offset, int const result_batch_offset,
     int const thread_num) {
   // Each thread works on its slice
-  //   int const total_work = q_head_num * batch_size;
+  // int const total_work = q_head_num * batch_size;
   int const total_work = batch_size;
   int const work_per_thread = total_work / thread_num;
   int const work_remained = total_work % thread_num;
@@ -4605,11 +4308,11 @@ void prepare_value_gemv_half(
     acc += 1;
     // int cpu_id = t;
     threads.emplace_back(
-        value_bandwidth_test, values, logits, result, q_head_num, kv_head_num,
-        batch_size, K, Dh, values_head_offset, values_batch_offset,
-        logits_head_offset, logits_batch_offset, result_head_offset,
-        result_batch_offset, cpu_id, thread_num, start_idx, end_idx,
-        &ready_flag, &finished_flags[t], &thread_results[t]);
+        value_bandwidth_test_1, values, logits, result, topk_indices, topk_num,
+        q_head_num, kv_head_num, batch_size, K, Dh, values_head_offset,
+        values_batch_offset, logits_head_offset, logits_batch_offset,
+        result_head_offset, result_batch_offset, cpu_id, thread_num, start_idx,
+        end_idx, &ready_flag, &finished_flags[t], &thread_results[t]);
 
     // Get the native handle for the created thread
     pthread_t nativeHandle = threads.back().native_handle();
