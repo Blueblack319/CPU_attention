@@ -365,6 +365,15 @@ def test_value_gemv(batch_size, K, thread_num, is_gqa, dtype=np.float16):
         f"BS: {batch_size}, K: {K}, Dh: {Dh}, q_head_num: {q_head_num}, kv_head_num: {kv_head_num}, thread_num: {thread_num}"
     )
 
+    ############################################
+    # (head, batch, K, Dh) version
+    kv_head_offset = batch_size * K * Dh
+    kv_batch_offset = K * Dh
+    logits_queries_head_offset = batch_size * K
+    logits_queries_batch_offset = K
+    out_logits_head_offset = batch_size * Dh
+    out_logits_batch_offset = Dh
+
     # Allocate memory
     if dtype == np.float16:
         # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
@@ -396,12 +405,45 @@ def test_value_gemv(batch_size, K, thread_num, is_gqa, dtype=np.float16):
         assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
         assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
 
-    kv_head_offset = batch_size * K * Dh
-    kv_batch_offset = K * Dh
-    logits_queries_head_offset = batch_size * K
-    logits_queries_batch_offset = K
-    out_logits_head_offset = batch_size * Dh
-    out_logits_batch_offset = Dh
+    # (batch, head, K, Dh) version
+    # kv_batch_offset = kv_head_num * K * Dh
+    # kv_head_offset = K * Dh
+    # logits_queries_batch_offset = q_head_num * K
+    # logits_queries_head_offset = K
+    # out_logits_batch_offset = q_head_num * Dh
+    # out_logits_head_offset = Dh
+
+    # # Allocate memory
+    # if dtype == np.float16:
+    #     # Memory-aligned allocation using NumPy (default alignment is sufficient for most cases)
+    #     values = aligned_array(
+    #         (batch_size, kv_head_num, K, Dh), dtype=np.float16, alignment=64
+    #     )
+    #     logits = aligned_array(
+    #         (batch_size, q_head_num, K), dtype=np.float16, alignment=64
+    #     )
+    #     result = aligned_array(
+    #         (batch_size, q_head_num, Dh), dtype=np.float16, alignment=64
+    #     )
+    #     # Fill values and logits with random values
+    #     values[:] = np.random.rand(*values.shape).astype(np.float16)
+    #     logits[:] = np.random.rand(*logits.shape).astype(np.float16)
+
+    #     # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
+    #     assert values.ctypes.data % 64 == 0, "values is not 64-byte aligned!"
+    #     assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
+    #     assert result.ctypes.data % 64 == 0, "result is not 64-byte aligned!"
+    # else:
+    #     # Memory-aligned allocation using Torch
+    #     values = torch.rand(batch_size * kv_head_num, K, Dh, dtype=dtype)
+    #     logits = torch.rand(batch_size * q_head_num, 1, K, dtype=dtype)
+    #     result = torch.zeros(batch_size * q_head_num, 1, Dh, dtype=dtype)
+
+    #     # Check memory alignment
+    #     assert values.data_ptr() % 64 == 0, "values is not 64-byte aligned!"
+    #     assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+    #     assert result.data_ptr() % 64 == 0, "result is not 64-byte aligned!"
+    ############################################
 
     total_sec = 0
     for _ in range(ITER):
@@ -572,23 +614,59 @@ def test_key_gemv(batch_size, K, thread_num, is_gqa, dtype=np.float16):
         f"BS: {batch_size}, K: {K}, Dh: {Dh}, q_head_num: {q_head_num}, kv_head_num: {kv_head_num}, thread_num: {thread_num}"
     )
 
-    kv_head_offset = batch_size * K * Dh
-    kv_batch_offset = K * Dh
-    queries_head_offset = batch_size * Dh
-    queries_batch_offset = Dh
-    logits_head_offset = batch_size * K
-    logits_batch_offset = K
+    ############################################
+    # (head, batch, K, Dh) Version
+    # kv_head_offset = batch_size * K * Dh
+    # kv_batch_offset = K * Dh
+    # queries_head_offset = batch_size * Dh
+    # queries_batch_offset = Dh
+    # logits_head_offset = batch_size * K
+    # logits_batch_offset = K
+
+    # if dtype == np.float16:
+    #     # Numpy version
+    #     keys = aligned_array(
+    #         (kv_head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
+    #     )
+    #     queries = aligned_array(
+    #         (q_head_num, batch_size, Dh), dtype=np.float16, alignment=64
+    #     )
+    #     logits = aligned_array(
+    #         (q_head_num, batch_size, K), dtype=np.float16, alignment=64
+    #     )
+    #     keys[:] = np.random.rand(*keys.shape).astype(np.float16)
+    #     queries[:] = np.random.rand(*queries.shape).astype(np.float16)
+    #     # Ensure alignment (numpy arrays are typically well-aligned for SIMD operations)
+    #     assert keys.ctypes.data % 64 == 0, "keys is not 64-byte aligned!"
+    #     assert queries.ctypes.data % 64 == 0, "queries is not 64-byte aligned!"
+    #     assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
+    # else:
+    #     # Torch version
+    #     keys = torch.rand(kv_head_num * batch_size, K, Dh, dtype=torch.float16)
+    #     queries = torch.rand(q_head_num * batch_size, 1, Dh, dtype=torch.float16)
+    #     logits = torch.zeros(q_head_num * batch_size, 1, K, dtype=torch.float16)
+    #     assert keys.data_ptr() % 64 == 0, "keys is not 64-byte aligned!"
+    #     assert queries.data_ptr() % 64 == 0, "queries is not 64-byte aligned!"
+    #     assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+
+    # (batch, head, K, Dh) Version
+    kv_batch_offset = kv_head_num * K * Dh
+    kv_head_offset = K * Dh
+    queries_batch_offset = q_head_num * Dh
+    queries_head_offset = Dh
+    logits_batch_offset = q_head_num * K
+    logits_head_offset = K
 
     if dtype == np.float16:
         # Numpy version
         keys = aligned_array(
-            (kv_head_num, batch_size, K, Dh), dtype=np.float16, alignment=64
+            (batch_size, kv_head_num, K, Dh), dtype=np.float16, alignment=64
         )
         queries = aligned_array(
-            (q_head_num, batch_size, Dh), dtype=np.float16, alignment=64
+            (batch_size, q_head_num, Dh), dtype=np.float16, alignment=64
         )
         logits = aligned_array(
-            (q_head_num, batch_size, K), dtype=np.float16, alignment=64
+            (batch_size, q_head_num, K), dtype=np.float16, alignment=64
         )
         keys[:] = np.random.rand(*keys.shape).astype(np.float16)
         queries[:] = np.random.rand(*queries.shape).astype(np.float16)
@@ -598,12 +676,14 @@ def test_key_gemv(batch_size, K, thread_num, is_gqa, dtype=np.float16):
         assert logits.ctypes.data % 64 == 0, "logits is not 64-byte aligned!"
     else:
         # Torch version
-        keys = torch.rand(kv_head_num * batch_size, K, Dh, dtype=dtype)
-        queries = torch.rand(q_head_num * batch_size, 1, Dh, dtype=dtype)
-        logits = torch.zeros(q_head_num * batch_size, 1, K, dtype=dtype)
+        keys = torch.rand(kv_head_num * batch_size, K, Dh, dtype=torch.float16)
+        queries = torch.rand(q_head_num * batch_size, 1, Dh, dtype=torch.float16)
+        logits = torch.zeros(q_head_num * batch_size, 1, K, dtype=torch.float16)
         assert keys.data_ptr() % 64 == 0, "keys is not 64-byte aligned!"
         assert queries.data_ptr() % 64 == 0, "queries is not 64-byte aligned!"
         assert logits.data_ptr() % 64 == 0, "logits is not 64-byte aligned!"
+
+    ############################################
 
     total_sec = 0
     for _ in range(ITER):
