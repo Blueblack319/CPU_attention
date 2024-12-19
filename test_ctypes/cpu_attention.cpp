@@ -2649,7 +2649,7 @@ void value_gemv_threaded_half(
   logits_half = logits_;
   results_half = results_;
   const int last_case = K % 16;
-  // [ ] Reduce memory footprint
+
   const int q_per_kv = q_head_num / kv_head_num;
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
@@ -2842,7 +2842,7 @@ void value_gemv_threaded_half_only_batch(
   logits_half = logits_;
   results_half = results_;
   const int last_case = K % 16;
-  // [ ] Reduce memory footprint
+
   const int q_per_kv = q_head_num / kv_head_num;
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
@@ -3039,7 +3039,7 @@ void value_bandwidth_test_1(
   logits_half = logits_;
   results_half = results_;
   const int last_case = K % 16;
-  // [ ] Reduce memory footprint
+
   const int q_per_kv = q_head_num / kv_head_num;
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
@@ -3057,7 +3057,7 @@ void value_bandwidth_test_1(
 
         volatile float logit =
             __half2float(logits_half[q_head_idx * logits_haed_offset +
-                                     idx * logits_batch_offset + k]);
+                                     idx * logits_batch_offset + k_idx]);
         volatile __m256 logit_vec = _mm256_set1_ps(logit);
 
         // if (k + 1 < K) {
@@ -3066,6 +3066,194 @@ void value_bandwidth_test_1(
         //                      idx * values_batch_offset + (k + 1) * Dh),
         //       _MM_HINT_T0);
         // }
+        volatile __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh)));
+        volatile __m256 v01 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 8)));
+        volatile __m256 v02 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 16)));
+        volatile __m256 v03 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 24)));
+        volatile __m256 v04 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 32)));
+        volatile __m256 v05 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 40)));
+        volatile __m256 v06 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 48)));
+        volatile __m256 v07 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 56)));
+        volatile __m256 v08 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 64)));
+        volatile __m256 v09 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 72)));
+        volatile __m256 v10 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 80)));
+        volatile __m256 v11 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 88)));
+        volatile __m256 v12 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 96)));
+        volatile __m256 v13 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 104)));
+        volatile __m256 v14 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 112)));
+        volatile __m256 v15 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 120)));
+      }
+    }
+  }
+  // Mark this thread as finished
+  finished_flag->store(true, std::memory_order_release);
+  clock_gettime(CLOCK_REALTIME, &end);
+  duration->first = thread_id;
+  duration->second =
+      ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+  //   duration->second = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
+}
+
+void value_bandwidth_test_2(
+    half *values_, half *logits_, half *results_, const uint16_t *topk_indices,
+    int const topk_num, int const q_head_num, int const kv_head_num,
+    int const batch_size, int const K, int const Dh,
+    int const values_head_offset, int const values_batch_offset,
+    int const logits_haed_offset, int const logits_batch_offset,
+    int const result_head_offset, int const result_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx, std::atomic<bool> *ready_flag,
+    std::atomic<bool> *finished_flag, pair_tr *duration) {
+  struct timespec start, end;
+  values_half = values_;
+  logits_half = logits_;
+  results_half = results_;
+
+  const int q_per_kv = q_head_num / kv_head_num;
+
+  while (!(ready_flag->load(std::memory_order_acquire))) {
+  }
+  clock_gettime(CLOCK_REALTIME, &start);
+
+  // Multiply and Add
+  for (int idx = start_idx; idx < end_idx; ++idx) {  // batch index
+    for (int k_idx = 0; k_idx < topk_num; ++k_idx) {
+      int const k = topk_indices[k_idx];
+      for (int q_head_idx = 0; q_head_idx < q_head_num;
+           ++q_head_idx) {  // head_idx
+        int const kv_head_idx = q_head_idx / q_per_kv;
+
+        volatile float logit =
+            __half2float(logits_half[q_head_idx * logits_haed_offset +
+                                     idx * logits_batch_offset + k_idx]);
+        volatile __m256 logit_vec = _mm256_set1_ps(logit);
+
+        volatile __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh)));
+        volatile __m256 v01 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 8)));
+        volatile __m256 v02 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 16)));
+        volatile __m256 v03 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 24)));
+        volatile __m256 v04 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 32)));
+        volatile __m256 v05 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 40)));
+        volatile __m256 v06 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 48)));
+        volatile __m256 v07 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 56)));
+        volatile __m256 v08 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 64)));
+        volatile __m256 v09 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 72)));
+        volatile __m256 v10 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 80)));
+        volatile __m256 v11 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 88)));
+        volatile __m256 v12 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 96)));
+        volatile __m256 v13 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 104)));
+        volatile __m256 v14 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 112)));
+        volatile __m256 v15 = _mm256_cvtph_ps(_mm_load_si128(
+            (__m128i *)(values_half + kv_head_idx * values_head_offset +
+                        idx * values_batch_offset + k * Dh + 120)));
+      }
+    }
+  }
+  // Mark this thread as finished
+  finished_flag->store(true, std::memory_order_release);
+  clock_gettime(CLOCK_REALTIME, &end);
+  duration->first = thread_id;
+  duration->second =
+      ((end.tv_sec - start.tv_sec) + (end.tv_nsec - start.tv_nsec) / 1e9) * 1e6;
+  //   duration->second = (start.tv_sec + start.tv_nsec / 1e9) * 1e6;
+}
+
+void value_bandwidth_test_3(
+    half *values_, half *logits_, half *results_, const uint16_t *topk_indices,
+    int const topk_num, int const q_head_num, int const kv_head_num,
+    int const batch_size, int const K, int const Dh,
+    int const values_head_offset, int const values_batch_offset,
+    int const logits_haed_offset, int const logits_batch_offset,
+    int const result_head_offset, int const result_batch_offset,
+    int const thread_id, int const num_threads, int const start_idx,
+    int const end_idx, std::atomic<bool> *ready_flag,
+    std::atomic<bool> *finished_flag, pair_tr *duration) {
+  struct timespec start, end;
+  values_half = values_;
+  logits_half = logits_;
+  results_half = results_;
+
+  const int q_per_kv = q_head_num / kv_head_num;
+
+  while (!(ready_flag->load(std::memory_order_acquire))) {
+  }
+  clock_gettime(CLOCK_REALTIME, &start);
+
+  // Multiply and Add
+  for (int k_idx = start_idx; k_idx < end_idx; ++k_idx) {  // Top-k index
+    for (int idx = 0; idx < topk_num; ++idx) {             // Batch index
+      int const k = topk_indices[k_idx];
+      for (int q_head_idx = 0; q_head_idx < q_head_num;
+           ++q_head_idx) {  // Head index
+        int const kv_head_idx = q_head_idx / q_per_kv;
+
+        volatile float logit =
+            __half2float(logits_half[q_head_idx * logits_haed_offset +
+                                     idx * logits_batch_offset + k_idx]);
+        volatile __m256 logit_vec = _mm256_set1_ps(logit);
+
         volatile __m256 v00 = _mm256_cvtph_ps(_mm_load_si128(
             (__m128i *)(values_half + kv_head_idx * values_head_offset +
                         idx * values_batch_offset + k * Dh)));
@@ -3141,7 +3329,7 @@ void key_gemv_threaded_half(
   queries_half = queries_;
   logits_half = logits_;
   const int last_case = K % 16;
-  // [ ] Reduce memory footprint
+
   const int q_per_kv = q_head_num / kv_head_num;
   // DEBUG
   // printf("lastcase %d\n", last_case);
@@ -3423,7 +3611,7 @@ void key_bandwidth_test(half *keys_, half *queries_, half *logits_,
   queries_half = queries_;
   logits_half = logits_;
   const int last_case = K % 16;
-  // [ ] Reduce memory footprint
+
   const int q_per_kv = q_head_num / kv_head_num;
 
   while (!(ready_flag->load(std::memory_order_acquire))) {
@@ -3517,7 +3705,7 @@ void key_gemv_threaded_half_1(
   queries_half = queries_;
   logits_half = logits_;
   const int last_case = K % 16;
-  // [ ] Reduce memory footprint
+
   const int q_per_kv = q_head_num / kv_head_num;
   //   printf("q_per_kv: %d\n", q_per_kv);
   // DEBUG
@@ -4086,7 +4274,7 @@ void key_bandwidth_test_1(
   queries_half = queries_;
   logits_half = logits_;
   const int last_case = K % 16;
-  // [ ] Reduce memory footprint
+
   const int q_per_kv = q_head_num / kv_head_num;
   //   printf("q_per_kv: %d\n", q_per_kv);
   // DEBUG
@@ -4285,9 +4473,10 @@ void prepare_value_gemv_half(
     int const logits_head_offset, int const logits_batch_offset,
     int const result_head_offset, int const result_batch_offset,
     int const thread_num) {
-  // Each thread works on its slice
-  // int const total_work = q_head_num * batch_size;
-  int const total_work = batch_size;
+  // For data layout no.1 & no.2
+  // int const total_work = batch_size;
+  // For data layout no.3
+  int const total_work = topk_num;
   int const work_per_thread = total_work / thread_num;
   int const work_remained = total_work % thread_num;
 
@@ -4308,7 +4497,7 @@ void prepare_value_gemv_half(
     acc += 1;
     // int cpu_id = t;
     threads.emplace_back(
-        value_bandwidth_test_1, values, logits, result, topk_indices, topk_num,
+        value_bandwidth_test_3, values, logits, result, topk_indices, topk_num,
         q_head_num, kv_head_num, batch_size, K, Dh, values_head_offset,
         values_batch_offset, logits_head_offset, logits_batch_offset,
         result_head_offset, result_batch_offset, cpu_id, thread_num, start_idx,
