@@ -73,7 +73,9 @@
         "format": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "bitset": "cpp",
+        "__bit_reference": "cpp"
     },
     "cmake.sourceDirectory": "/home2/jaehoon/CPU_attention/integration",
     "makefile.configureOnOpen": false

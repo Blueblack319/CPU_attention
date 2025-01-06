@@ -46,45 +46,73 @@ int main(int argc, char *argv[]) {
   }
 
   const size_t batch_size = atoi(argv[1]);
-  const size_t K = atoi(argv[2]);
-  const size_t thread_num = atoi(argv[3]);
-  const bool is_key_gemv = bool(atoi(argv[4]));
+  const size_t S_len = atoi(argv[2]);
+  const float topk_ratio = atof(argv[3]);
+  const size_t thread_num = atoi(argv[4]);
+  const bool is_key_gemv = bool(atoi(argv[5]));
 
-  size_t Dh = 128, iteration = 51;
-  // size_t num_head = is_key_gemv ? 4 : 32;
-  size_t num_head = 32;
+  size_t Dh = 128;
+  size_t q_head_num = (is_key_gemv == true) ? 4 : 32;
+  size_t kv_head_num = (is_key_gemv == true) ? 1 : 8;
+  size_t topk_num = static_cast<size_t>(S_len * topk_ratio);
   if (is_key_gemv)
     printf("Key GEMV\n");
   else
     printf("Value GEMV\n");
-  printf("BS: %d, K: %d, Dh: %d, num_head: %d, thread_num: %d\n", batch_size, K,
-         Dh, num_head, thread_num);
-  const int kv_head_offset = batch_size * K * Dh;
-  const int kv_batch_offset = K * Dh;
-  const int logits_score_head_offset = batch_size * K;
-  const int logits_score_batch_offset = K;
-  const int q_out_head_offset = batch_size * Dh;
-  const int q_out_batch_offset = Dh;
+  printf(
+      "BS: %d, S: %d, topk_num: %d, Dh: %d, q_head_num: %d, kv_head_num: %d, "
+      "thread_num: "
+      "%d\n",
+      batch_size, S_len, topk_num, Dh, q_head_num, kv_head_num, thread_num);
+  /*
+  Data Layout
+  I: (B, H_kv, K)
+  V: (B, H_kv, S, Dh)
+  L: (B, H_q, K)
+  O: (B, H_q, Dh)
+
+  I: (B, H_kv, K)
+  K: (B, H_kv, S, Dh)
+  Q: (B, H_q, Dh)
+  L: (B, H_q, K)
+  */
+  const int kv_batch_offset = kv_head_num * S_len * Dh;
+  const int kv_head_offset = S_len * Dh;
+  const int logits_score_batch_offset = q_head_num * topk_num;
+  const int logits_score_head_offset = topk_num;
+  const int q_out_batch_offset = q_head_num * Dh;
+  const int q_out_head_offset = Dh;
+  /*
+  V: (H_kv, B, S, Dh)
+  L: (H_q, B, K)
+  O: (H_q, B, Dh)
+  */
+  // const int kv_head_offset = batch_size * S_len * Dh;
+  // const int kv_batch_offset = S_len * Dh;
+  // const int logits_score_head_offset = batch_size * K;
+  // const int logits_score_batch_offset = K;
+  // const int q_out_head_offset = batch_size * Dh;
+  // const int q_out_batch_offset = Dh;
 
   if (is_key_gemv) {
     key_gemv_eval<std::uint16_t>(
-        K, Dh, num_head, batch_size, iteration, kv_head_offset, kv_batch_offset,
-        q_out_head_offset, q_out_batch_offset, logits_score_head_offset,
-        logits_score_batch_offset, thread_num);
-    // key_gemv_eval<float>(K, Dh, num_head, batch_size, iteration,
+        K, Dh, q_head_num, kv_head_num, batch_size, iteration, kv_head_offset,
+        kv_batch_offset, q_out_head_offset, q_out_batch_offset,
+        logits_score_head_offset, logits_score_batch_offset, thread_num);
+    // key_gemv_eval<float>(K, Dh, head_num, batch_size, iteration,
     // kv_head_offset,
     //                      kv_batch_offset, q_out_head_offset,
     //                      q_out_batch_offset, logits_score_head_offset,
     //                      logits_score_batch_offset, thread_num);
   } else {
-    // value_gemv_eval(K, Dh, num_head, batch_size, iteration, kv_head_offset,
+    // value_gemv_eval(K, Dh, head_num, batch_size, iteration, kv_head_offset,
     //                 kv_batch_offset, logits_score_head_offset,
     //                 logits_score_batch_offset, q_out_head_offset,
     //                 q_out_batch_offset, thread_num);
-    value_gemv_eval_half(K, Dh, num_head, batch_size, iteration, kv_head_offset,
-                         kv_batch_offset, logits_score_head_offset,
-                         logits_score_batch_offset, q_out_head_offset,
-                         q_out_batch_offset, thread_num);
+    value_gemv_eval_half(S_len, topk_num, Dh, q_head_num, kv_head_num,
+                         batch_size, kv_head_offset, kv_batch_offset,
+                         logits_score_head_offset, logits_score_batch_offset,
+                         q_out_head_offset, q_out_batch_offset, thread_num);
   }
 
   return 0;
